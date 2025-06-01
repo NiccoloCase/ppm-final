@@ -9,13 +9,35 @@ import { NotFoundPage } from "../pages/NotFound";
 import { Layout } from "./Layout";
 import { LoginScreen } from "../pages/Login";
 import { SignupScreen } from "../pages/Signup";
+import { GuestRoute, PrivateRoute } from "./wrappers";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route element={<Layout />}>
-      <Route path="/" element={<HomeScreen />} />
-      <Route path="/login" element={<LoginScreen />} />
-      <Route path="/signup" element={<SignupScreen />} />
+      <Route
+        path="/"
+        element={
+          <PrivateRoute>
+            <HomeScreen />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/login"
+        element={
+          <GuestRoute>
+            <LoginScreen />
+          </GuestRoute>
+        }
+      />
+      <Route
+        path="/signup"
+        element={
+          <GuestRoute>
+            <SignupScreen />
+          </GuestRoute>
+        }
+      />
       <Route path="*" element={<NotFoundPage />} />
     </Route>
   )

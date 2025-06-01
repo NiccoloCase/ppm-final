@@ -1,2 +1,3 @@
 import { GeneralModel } from "./general";
-export type MergedStoreModel = GeneralModel;
+import { UserModel } from "./user";
+export type MergedStoreModel = GeneralModel & UserModel;
