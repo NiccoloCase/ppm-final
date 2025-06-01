@@ -240,7 +240,16 @@ export const createUserStore: StateCreator<
 
         if (newToken && !isTokenExpired(newToken)) {
           console.log("New access token is valid.");
-          set({ isAuthenticated: true });
+
+          // Load the user profile after refreshing the token
+          const response = await api.whoami();
+          if (response.success) {
+            const user = response.data as User;
+            set({ user, isAuthenticated: true, isLoading: false, error: null });
+          } else {
+            console.error("Failed to load user profile after token refresh.");
+            set({ error: "Failed to load user profile" });
+          }
         } else {
           console.log("New access token is invalid or expired.");
           get().logout();
