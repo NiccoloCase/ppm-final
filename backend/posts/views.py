@@ -1,14 +1,15 @@
 from rest_framework import generics, status, permissions
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from .models import Post, Comment, Like
 from .serializers import PostSerializer, CommentSerializer, LikeSerializer
 from accounts.models import Follow
 #from notifications.utils import create_notification TODO
 
 
-# Custom Permission Classes for Different User Groups
+
 class IsVerifiedUser(permissions.BasePermission):
     """
     Permission class for verified users (staff members or users with premium features).
@@ -59,7 +60,8 @@ class IsRegularUserOrReadOnly(permissions.BasePermission):
 
 class PostListCreateView(generics.ListCreateAPIView):
     serializer_class = PostSerializer
-    permission_classes = [IsVerifiedUser]  # Using custom permission for verified users
+    permission_classes = [IsVerifiedUser]
+    authentication_classes = [JWTAuthentication]
 
     def get_queryset(self):
         # Show posts from followed users and own posts
@@ -70,12 +72,14 @@ class PostListCreateView(generics.ListCreateAPIView):
 class PostDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
-    permission_classes = [IsRegularUserOrReadOnly]  # Using custom permission for regular users
+    permission_classes = [IsRegularUserOrReadOnly]
+    authentication_classes = [JWTAuthentication]
 
 
 class UserPostsView(generics.ListAPIView):
     serializer_class = PostSerializer
-    permission_classes = [IsRegularUserOrReadOnly]  # Using custom permission for regular users
+    permission_classes = [IsRegularUserOrReadOnly]
+    authentication_classes = [JWTAuthentication]
 
     def get_queryset(self):
         username = self.kwargs['username']
@@ -84,7 +88,8 @@ class UserPostsView(generics.ListAPIView):
 
 class PostCommentsView(generics.ListCreateAPIView):
     serializer_class = CommentSerializer
-    permission_classes = [IsRegularUserOrReadOnly]  # Using custom permission for regular users
+    permission_classes = [IsRegularUserOrReadOnly]
+    authentication_classes = [JWTAuthentication]
 
     def get_queryset(self):
         post_id = self.kwargs['post_id']
@@ -109,11 +114,13 @@ class PostCommentsView(generics.ListCreateAPIView):
 class CommentDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
-    permission_classes = [IsRegularUserOrReadOnly]  # Using custom permission for regular users
+    permission_classes = [IsRegularUserOrReadOnly]
+    authentication_classes = [JWTAuthentication]
 
 
 @api_view(['POST'])
 @permission_classes([permissions.IsAuthenticated])
+@authentication_classes([JWTAuthentication])
 def like_post(request, post_id):
     post = get_object_or_404(Post, id=post_id)
 
@@ -121,14 +128,15 @@ def like_post(request, post_id):
 
     if created:
         # Create notification for post author
-        if post.author != request.user:
-            create_notification(
-                recipient=post.author,
-                sender=request.user,
-                notification_type='like',
-                message=f'{request.user.username} liked your post',
-                related_post=post
-            )
+        # if post.author != request.user:
+           # TODO
+           # create_notification(
+           #     recipient=post.author,
+           #     sender=request.user,
+           #     notification_type='like',
+           #     message=f'{request.user.username} liked your post',
+           #     related_post=post
+           # )
         return Response({'message': 'Post liked successfully'})
     else:
         return Response({'message': 'Post already liked'})
@@ -136,6 +144,7 @@ def like_post(request, post_id):
 
 @api_view(['POST'])
 @permission_classes([permissions.IsAuthenticated])
+@authentication_classes([JWTAuthentication])
 def unlike_post(request, post_id):
     post = get_object_or_404(Post, id=post_id)
 
@@ -149,14 +158,14 @@ def unlike_post(request, post_id):
 
 class PostLikesView(generics.ListAPIView):
     serializer_class = LikeSerializer
-    permission_classes = [IsRegularUserOrReadOnly]  # Using custom permission for regular users
+    permission_classes = [IsRegularUserOrReadOnly]
+    authentication_classes = [JWTAuthentication]
 
     def get_queryset(self):
         post_id = self.kwargs['post_id']
         return Like.objects.filter(post_id=post_id)
 
 
-# Keep the original IsAuthorOrReadOnly for backwards compatibility
 class IsAuthorOrReadOnly(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
