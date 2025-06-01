@@ -1,0 +1,19 @@
+body,
+html {
+  margin: 0;
+  padding: 0;
+  font-family: var(--main-font-family) !important;
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: #fff !important;
+  overflow-y: scroll;
+
+  &.no-scroll {
+    overflow: hidden !important;
+    overflow-y: hidden !important;
+  }
+}

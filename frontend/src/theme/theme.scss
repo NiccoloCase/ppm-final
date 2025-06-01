@@ -1,0 +1,61 @@
+@import "node_modules/bootstrap/scss/bootstrap";
+
+:root {
+  --padding-x: 15vw;
+  --border-radius: 0px;
+}
+
+// Between xlg and lg
+@media (min-width: 992px) and (max-width: 1199.98px) {
+  :root {
+    --padding-x: 6lvw;
+  }
+}
+
+@include media-breakpoint-down(lg) {
+  :root {
+    --padding-x: 1.5vw;
+  }
+}
+
+@include media-breakpoint-down(md) {
+  :root {
+    --padding-x: 4rem;
+  }
+}
+
+@include media-breakpoint-down(sm) {
+  :root {
+    --padding-x: 8px;
+  }
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.form-control:focus {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 0.2rem var(--primary) !important;
+}
+
+.btn-primary:hover {
+  background-color: var(--secondary) !important;
+}
+
+.btn-primary:disabled {
+  background-color: var(--secondary) !important;
+  opacity: 0.7;
+}
+
+.btn-primary {
+  background-color: var(--primary) !important;
+}
