@@ -4,6 +4,8 @@ import * as Yup from "yup";
 import { Camera, X, MapPin, Tag, Smile } from "lucide-react";
 import { Link } from "react-router-dom";
 import { palette } from "../../../config";
+import { useStore } from "../../../store";
+import { enqueueSnackbar } from "notistack";
 
 interface CreatePostFormValues {
   caption: string;
@@ -25,6 +27,8 @@ export const CreatePostScreen: React.FC = () => {
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const createPost = useStore((state) => state.createPost);
+
   const initialValues: CreatePostFormValues = {
     caption: "",
     location: "",
@@ -34,14 +38,11 @@ export const CreatePostScreen: React.FC = () => {
     const files = Array.from(event.target.files || []);
     if (files.length === 0) return;
 
-    // Limit to 10 images like Instagram
     const newFiles = [...selectedImages, ...files].slice(0, 10);
     setSelectedImages(newFiles);
 
-    // Create preview URLs
     const newPreviewUrls = newFiles.map((file) => URL.createObjectURL(file));
     setPreviewUrls((prev) => {
-      // Clean up old URLs
       prev.forEach((url) => URL.revokeObjectURL(url));
       return newPreviewUrls;
     });
@@ -58,7 +59,7 @@ export const CreatePostScreen: React.FC = () => {
     setPreviewUrls(newPreviews);
   };
 
-  const handleSubmit = (
+  const handleSubmit = async (
     values: CreatePostFormValues,
     { setSubmitting }: any
   ) => {
@@ -68,23 +69,24 @@ export const CreatePostScreen: React.FC = () => {
       return;
     }
 
-    // TODO: Upload images and create post
-    setTimeout(() => {
-      console.log("Nuovo post creato:", {
-        images: selectedImages,
-        caption: values.caption,
-        location: values.location,
-      });
-      alert("Post pubblicato con successo! (Questa è una demo)");
-      setSubmitting(false);
+    const res = await createPost(values.caption, selectedImages[0]);
 
-      // Reset form
-      setSelectedImages([]);
-      setPreviewUrls((prev) => {
-        prev.forEach((url) => URL.revokeObjectURL(url));
-        return [];
+    if (!res.success) {
+      enqueueSnackbar({
+        message: "Si è verificato un errore durante la creazione del post",
+        variant: "error",
       });
-    }, 1500);
+      console.error("Error creating post:", res.error);
+      setSubmitting(false);
+      return;
+    }
+
+    // Reset form
+    setSelectedImages([]);
+    setPreviewUrls((prev) => {
+      prev.forEach((url) => URL.revokeObjectURL(url));
+      return [];
+    });
   };
 
   return (
@@ -139,23 +141,6 @@ export const CreatePostScreen: React.FC = () => {
                 </div>
               ) : (
                 <div>
-                  <div className="d-flex align-items-center justify-content-between mb-3">
-                    <h6 className="mb-0 fw-semibold">
-                      {selectedImages.length} foto selezionate
-                    </h6>
-                    <button
-                      type="button"
-                      className="btn btn-outline-primary btn-sm"
-                      onClick={() => fileInputRef.current?.click()}
-                      style={{
-                        borderColor: "#0095f6",
-                        color: "#0095f6",
-                        borderRadius: "6px",
-                      }}
-                    >
-                      Aggiungi altre
-                    </button>
-                  </div>
                   <div className="row g-2">
                     {previewUrls.map((url, index) => (
                       <div key={index} className="col-4">
@@ -219,13 +204,12 @@ export const CreatePostScreen: React.FC = () => {
                   handleSubmit: formikSubmit,
                 }) => (
                   <form onSubmit={formikSubmit} noValidate>
-                    {/* Caption Field */}
                     <div className="mb-4">
                       <label
                         htmlFor="caption"
                         className="form-label small fw-semibold d-flex align-items-center"
                       >
-                        Didascalia
+                        Contenuto
                       </label>
                       <Field
                         as="textarea"
@@ -235,8 +219,8 @@ export const CreatePostScreen: React.FC = () => {
                         className={`form-control ${
                           errors.caption && touched.caption ? "is-invalid" : ""
                         }`}
-                        placeholder="Scrivi una didascalia..."
-                        aria-label="Didascalia del post"
+                        placeholder="Scrivi il contenuto del post..."
+                        aria-label="Scrivi il contenuto del post..."
                         style={{
                           backgroundColor: "#fafafa",
                           border: "1px solid #dbdbdb",

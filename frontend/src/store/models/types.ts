@@ -1,3 +1,4 @@
 import { GeneralModel } from "./general";
+import { PostModel } from "./post";
 import { UserModel } from "./user";
-export type MergedStoreModel = GeneralModel & UserModel;
+export type MergedStoreModel = GeneralModel & UserModel & PostModel;

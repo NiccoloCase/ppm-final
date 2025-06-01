@@ -4,7 +4,6 @@ import { api } from "../../api";
 import { MergedStoreModel } from "./types";
 import { useStore } from "..";
 import { isObject } from "formik";
-import { ref } from "joi";
 
 export interface User {
   id: number;

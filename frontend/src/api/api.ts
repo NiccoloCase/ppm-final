@@ -96,6 +96,43 @@ export const api = {
       };
     }
   },
+
+  createPost: async (content: string, image: File) => {
+    try {
+      const formData = new FormData();
+      formData.append("content", content);
+      formData.append("image", image);
+
+      const response = await axiosInstance.post("/posts/", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error("Error creating post:", error);
+      let errorMessage = "Failed to create post";
+
+      return {
+        success: false,
+        error: errorMessage,
+      };
+    }
+  },
+
+  getFeed: async (page: number = 1): Promise<APIResponse> => {
+    try {
+      const response = await axiosInstance.get(`/posts/feed`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error("Error fetching feed:", error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Failed to fetch feed",
+      };
+    }
+  },
 };
 
 export { axiosInstance };
