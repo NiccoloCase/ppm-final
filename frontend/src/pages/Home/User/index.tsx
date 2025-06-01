@@ -42,7 +42,6 @@ export const ProfileScreen: React.FC = () => {
                   <button className="btn btn-primary btn-sm px-4">
                     Edit Profile
                   </button>{" "}
-                  {/** TODO */}
                   <button className="btn btn-secondary btn-sm px-4">
                     Logout
                   </button>{" "}

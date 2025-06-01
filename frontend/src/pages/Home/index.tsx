@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { Home, PlusSquare, User, Menu, X, Radar } from "lucide-react";
 import "./Home.scss";
 import { FeedScreen } from "./Feed/Feed";
-import { Post } from "../../components/Post";
 import { ProfileScreen } from "./User";
 import { CreatePostScreen } from "./Create";
 import { ExploreScreen } from "./Explore";
@@ -12,86 +11,6 @@ export const HomeScreen: React.FC = () => {
     "feed" | "profile" | "create" | "explore"
   >("feed");
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [posts, setPosts] = useState<Post[]>([
-    {
-      id: "1",
-      username: "photographer_jane",
-      avatar:
-        "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face",
-      image:
-        "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=600&fit=crop",
-      caption: "Golden hour magic ✨ #photography #sunset",
-      likes: 234,
-      comments: [
-        {
-          id: "c1",
-          username: "jane_smith",
-          text: "Looks amazing!",
-          timestamp: "2h",
-        },
-        {
-          id: "c2",
-          username: "travel_bug",
-          text: "Where is this?",
-          timestamp: "1h",
-        },
-      ],
-      timestamp: "2 hours ago",
-      isLiked: false,
-    },
-    {
-      id: "2",
-      username: "foodie_mike",
-      avatar:
-        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
-      image:
-        "https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=600&h=600&fit=crop",
-      caption: "Homemade pizza night! 🍕 Recipe in bio",
-      likes: 189,
-      comments: [
-        {
-          id: "c1",
-          username: "jane_smith",
-          text: "Looks amazing!",
-          timestamp: "2h",
-        },
-        {
-          id: "c2",
-          username: "travel_bug",
-          text: "Where is this?",
-          timestamp: "1h",
-        },
-      ],
-      timestamp: "4 hours ago",
-      isLiked: true,
-    },
-    {
-      id: "3",
-      username: "travel_sarah",
-      avatar:
-        "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
-      image:
-        "https://images.unsplash.com/photo-1539650116574-75c0c6d73f6e?w=600&h=600&fit=crop",
-      caption: "Lost in the mountains 🏔️ #wanderlust #nature",
-      likes: 456,
-      comments: [
-        {
-          id: "c1",
-          username: "jane_smith",
-          text: "Looks amazing!",
-          timestamp: "2h",
-        },
-        {
-          id: "c2",
-          username: "travel_bug",
-          text: "Where is this?",
-          timestamp: "1h",
-        },
-      ],
-      timestamp: "1 day ago",
-      isLiked: false,
-    },
-  ]);
 
   const NavigationItem: React.FC<{
     icon: React.ReactNode;
@@ -211,7 +130,7 @@ export const HomeScreen: React.FC = () => {
             //   style={{ marginLeft: window.innerWidth >= 992 ? "256px" : "0" }}
           >
             {currentScreen === "feed" ? (
-              <FeedScreen posts={posts} />
+              <FeedScreen />
             ) : currentScreen === "profile" ? (
               <ProfileScreen />
             ) : currentScreen === "create" ? (

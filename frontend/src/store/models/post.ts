@@ -25,6 +25,11 @@ interface PostActions {
     content: string,
     image: File
   ) => Promise<{ success: boolean; error?: string }>;
+
+  likePost: (postId: number) => Promise<{ success: boolean }>;
+  unlikePost: (postId: number) => Promise<{ success: boolean }>;
+
+  fetchFeed: () => Promise<void>;
 }
 
 export type PostModel = PostState & PostActions;
@@ -69,6 +74,55 @@ export const createPostStore: StateCreator<
       }
     } catch (error) {
       console.error("Error fetching feed:", error);
+    }
+  },
+
+  likePost: async (postId) => {
+    try {
+      const response = await api.likePost(postId);
+      if (response.success) {
+        set((state) => ({
+          feed: state.feed.map((post) =>
+            post.id === postId
+              ? { ...post, is_liked: true, likes_count: post.likes_count + 1 }
+              : post
+          ),
+
+          userPosts: state.userPosts.map((post) =>
+            post.id === postId
+              ? { ...post, is_liked: true, likes_count: post.likes_count + 1 }
+              : post
+          ),
+        }));
+      }
+      return { success: response.success };
+    } catch (error) {
+      console.error("Error liking post:", error);
+      return { success: false };
+    }
+  },
+  unlikePost: async (postId) => {
+    try {
+      const response = await api.unlikePost(postId);
+      if (response.success) {
+        set((state) => ({
+          feed: state.feed.map((post) =>
+            post.id === postId
+              ? { ...post, is_liked: false, likes_count: post.likes_count - 1 }
+              : post
+          ),
+
+          userPosts: state.userPosts.map((post) =>
+            post.id === postId
+              ? { ...post, is_liked: false, likes_count: post.likes_count - 1 }
+              : post
+          ),
+        }));
+      }
+      return { success: response.success };
+    } catch (error) {
+      console.error("Error unliking post:", error);
+      return { success: false };
     }
   },
 });

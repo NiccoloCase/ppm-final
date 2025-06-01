@@ -1,34 +1,72 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Heart, MessageCircle, X } from "lucide-react";
+import { Post } from "../../store/models/post";
+import { useStore } from "../../store";
+import { enqueueSnackbar } from "notistack";
 
 interface Comment {
   id: string;
   username: string;
   text: string;
-  timestamp: string;
-}
-
-export interface Post {
-  id: string;
-  username: string;
-  avatar: string;
-  image: string;
-  caption: string;
-  likes: number;
-  comments: Comment[];
-  timestamp: string;
-  isLiked: boolean;
+  timestamp: string; // TODO
 }
 
 export const PostCard: React.FC<{
   post: Post;
-  handleLike: (id: string) => void;
-}> = ({ post, handleLike }) => {
+}> = ({ post }) => {
   const [showCommentsPopover, setShowCommentsPopover] = useState(false);
   const [showAddCommentForm, setShowAddCommentForm] = useState(false);
   const [newCommentText, setNewCommentText] = useState("");
 
   const commentInputRef = useRef<HTMLTextAreaElement>(null);
+
+  const comments = [] as Comment[]; // TODO: Replace with actual comments data
+
+  const execLike = useStore((state) => state.likePost);
+  const execUnlike = useStore((state) => state.unlikePost);
+
+  const [isLiked, setIsLiked] = useState(post.is_liked);
+
+  useEffect(() => {
+    setIsLiked(post.is_liked);
+  }, [post.is_liked]);
+
+  const toggleLike = (postId: number) => {
+    console.log(`Toggling like for post ${postId}`);
+
+    if (post.is_liked) {
+      setIsLiked(false);
+      execUnlike(postId)
+        .then(() => {
+          console.log(`Post ${postId} unliked successfully`);
+        })
+        .catch((error) => {
+          console.error(`Error unliking post ${postId}:`, error);
+
+          enqueueSnackbar(
+            `Errore durante la rimozione del mi piace al post ${postId}`,
+            {
+              variant: "error",
+            }
+          );
+        });
+    } else {
+      setIsLiked(true);
+      execLike(postId)
+        .then(() => {
+          console.log(`Post ${postId} liked successfully`);
+        })
+        .catch((error) => {
+          console.error(`Error liking post ${postId}:`, error);
+          enqueueSnackbar(
+            `Errore durante l'aggiunta del mi piace al post ${postId}`,
+            {
+              variant: "error",
+            }
+          );
+        });
+    }
+  };
 
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
@@ -56,6 +94,13 @@ export const PostCard: React.FC<{
     }
   };
 
+  const numberOfLikes = () => {
+    let base = Number(post.likes_count) || 0;
+    if (post.is_liked && !isLiked) base -= 1;
+    else if (!post.is_liked && isLiked) base += 1;
+    return base > 0 ? base : 0;
+  };
+
   return (
     <article
       className="card mb-4 border-0 shadow-sm"
@@ -63,38 +108,41 @@ export const PostCard: React.FC<{
     >
       <header className="card-header bg-white border-0 d-flex justify-content-between align-items-center">
         <div className="d-flex align-items-center">
-          <img
-            src={post.avatar}
-            alt={`Profilo di ${post.username}`}
-            className="rounded-circle me-3"
-            style={{ width: "32px", height: "32px", objectFit: "cover" }}
-          />
+          {post.author.profile_picture && (
+            <img
+              src={post.author.profile_picture}
+              alt={`Profilo di ${post.author.username}`}
+              className="rounded-circle me-3"
+              style={{ width: "32px", height: "32px", objectFit: "cover" }}
+            />
+          )}
           <div className="d-flex flex-column">
             <h2
               className="fw-semibold small m-0"
               id={`post-username-${post.id}`}
             >
-              {post.username}
+              {post.author.username}
             </h2>
             <time
-              dateTime={post.timestamp}
+              dateTime={post.created_at}
               className="text-muted"
               style={{ fontSize: "0.75rem" }}
             >
-              {post.timestamp}
+              {post.created_at}
             </time>
           </div>
         </div>
       </header>
-
-      <figure className="m-0">
-        <img
-          src={post.image}
-          alt={`Immagine del post di ${post.username}`}
-          className="card-img"
-          style={{ aspectRatio: "1/1", objectFit: "cover" }}
-        />
-      </figure>
+      {post.image && (
+        <figure className="m-0">
+          <img
+            src={post.image}
+            alt={`Immagine del post di ${post.author.username}`}
+            className="card-img"
+            style={{ aspectRatio: "1/1", objectFit: "cover" }}
+          />
+        </figure>
+      )}
 
       <div className="card-body">
         <div
@@ -105,19 +153,19 @@ export const PostCard: React.FC<{
           <button
             type="button"
             className="btn btn-link p-0 border-0 me-3"
-            onClick={() => handleLike(post.id)}
+            onClick={() => toggleLike(post.id)}
             aria-label={
-              post.isLiked
-                ? `Togli mi piace al post di ${post.username}`
-                : `Metti mi piace al post di ${post.username}`
+              isLiked
+                ? `Togli mi piace al post ${post.id}`
+                : `Metti mi piace al post ${post.id}`
             }
-            aria-pressed={post.isLiked}
+            aria-pressed={isLiked}
           >
             <Heart
               size={24}
               style={{
-                color: post.isLiked ? "#e91e63" : "#666",
-                fill: post.isLiked ? "#e91e63" : "none",
+                color: isLiked ? "#e91e63" : "#666",
+                fill: isLiked ? "#e91e63" : "none",
                 transition: "all 0.2s",
               }}
             />
@@ -128,21 +176,22 @@ export const PostCard: React.FC<{
             onClick={() => setShowCommentsPopover(!showCommentsPopover)}
             aria-expanded={showCommentsPopover}
             aria-controls={`comments-popover-${post.id}`}
-            aria-label={`Visualizza commenti per il post di ${post.username}`}
+            aria-label={`Visualizza commenti per il post ${post.id}`}
           >
             <MessageCircle size={24} style={{ color: "#666" }} />
           </button>
         </div>
 
         <p className="fw-semibold small mb-2" aria-live="polite">
-          {post.likes.toLocaleString()} mi piace
+          {numberOfLikes()} mi piace
         </p>
 
         <div className="small mb-2">
-          <span className="fw-semibold me-2">{post.username}</span>
-          <span>{post.caption}</span>
+          <span className="fw-semibold me-2">{post.author.username}</span>
+          <span>{post.content}</span>
         </div>
-
+        {/* 
+TODO
         {post.comments.length > 0 && (
           <button
             type="button"
@@ -154,14 +203,14 @@ export const PostCard: React.FC<{
           >
             Vedi tutti {post.comments.length} commenti
           </button>
-        )}
+        )} */}
         <button
           type="button"
           className="btn btn-link p-0 border-0 text-muted small mt-1 d-block"
           onClick={() => setShowAddCommentForm(!showAddCommentForm)}
           aria-expanded={showAddCommentForm}
           aria-controls={`add-comment-form-${post.id}`}
-          aria-label={`Aggiungi un commento al post di ${post.username}`}
+          aria-label={`Aggiungi un commento al post ${post.id}`}
         >
           Aggiungi un commento...
         </button>
@@ -182,13 +231,13 @@ export const PostCard: React.FC<{
             <h3 id={`comments-heading-${post.id}`} className="fw-bold mb-3 h6">
               Commenti
             </h3>
-            {post.comments.length === 0 ? (
+            {comments.length === 0 ? (
               <p className="text-muted small">
                 Nessun commento ancora. Sii il primo a commentare!
               </p>
             ) : (
               <ul className="list-unstyled mb-0">
-                {post.comments.map((comment) => (
+                {comments.map((comment) => (
                   <li key={comment.id} className="mb-2 small">
                     <span className="fw-semibold me-1">{comment.username}</span>
                     <span>{comment.text}</span>

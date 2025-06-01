@@ -121,15 +121,39 @@ export const api = {
     }
   },
 
-  getFeed: async (page: number = 1): Promise<APIResponse> => {
+  getFeed: async (): Promise<APIResponse> => {
     try {
-      const response = await axiosInstance.get(`/posts/feed`);
+      const response = await axiosInstance.get(`/posts/`);
       return { success: true, data: response.data };
     } catch (error) {
       console.error("Error fetching feed:", error);
       return {
         success: false,
         error: error instanceof Error ? error.message : "Failed to fetch feed",
+      };
+    }
+  },
+
+  likePost: async (postId: number): Promise<APIResponse> => {
+    try {
+      const response = await axiosInstance.post(`/posts/${postId}/like/`);
+      return { success: response.status === 200 };
+    } catch (error) {
+      console.error("Error liking post:", error);
+      return {
+        success: false,
+      };
+    }
+  },
+
+  unlikePost: async (postId: number): Promise<APIResponse> => {
+    try {
+      const response = await axiosInstance.post(`/posts/${postId}/unlike/`);
+      return { success: response.status === 200 };
+    } catch (error) {
+      console.error("Error liking post:", error);
+      return {
+        success: false,
       };
     }
   },
