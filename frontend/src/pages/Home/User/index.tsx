@@ -63,6 +63,16 @@ export const ProfileScreen: React.FC = () => {
     setPosts((s) => (s == null ? null : s.filter((x) => x.id !== id)));
   };
 
+  const onUpdate = (id: number, updatedPost: Post) => {
+    setPosts((currentPosts) => {
+      if (currentPosts == null) return null;
+
+      return currentPosts.map((post) =>
+        post.id === id ? { ...post, ...updatedPost } : post
+      );
+    });
+  };
+
   const handleCloseModal = () => {
     setShowEditModal(false);
     setEditProfilePicture(null);
@@ -233,10 +243,12 @@ export const ProfileScreen: React.FC = () => {
             ) : (
               posts.map((post, index) => (
                 <PostCard
+                  edit
                   post={post}
                   key={index}
                   del={true}
                   onDelete={onPostDelete}
+                  onUpdate={onUpdate}
                 />
               ))
             )}

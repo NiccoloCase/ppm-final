@@ -29,6 +29,11 @@ interface PostActions {
   unlikePost: (postId: number) => Promise<{ success: boolean }>;
   deletePost: (postId: number) => Promise<{ success: boolean; error?: string }>;
   fetchFeed: () => Promise<void>;
+  updatePost: (
+    postId: number,
+    content: string,
+    image?: File
+  ) => Promise<{ success: boolean; error?: string; data?: Post }>;
 }
 
 export type PostModel = PostState & PostActions;
@@ -142,6 +147,34 @@ export const createPostStore: StateCreator<
       }
     } catch (error) {
       console.error("Error deleting post:", error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error",
+      };
+    }
+  },
+  updatePost: async (postId, content, image) => {
+    try {
+      const response = await api.updatePost(postId, content, image);
+      if (response.success) {
+        // Update the post in both feed and userPosts arrays
+        set((state) => ({
+          feed: state.feed.map((post) =>
+            post.id === postId ? { ...post, ...response.data } : post
+          ),
+          userPosts: state.userPosts.map((post) =>
+            post.id === postId ? { ...post, ...response.data } : post
+          ),
+        }));
+        return { success: true, data: response.data };
+      } else {
+        return {
+          success: false,
+          error: response.error || "Failed to update post",
+        };
+      }
+    } catch (error) {
+      console.error("Error updating post:", error);
       return {
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",
