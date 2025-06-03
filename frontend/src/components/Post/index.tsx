@@ -96,8 +96,6 @@ export const PostCard: React.FC<{
 
   const numberOfLikes = () => {
     let base = Number(post.likes_count) || 0;
-    if (post.is_liked && !isLiked) base -= 1;
-    else if (!post.is_liked && isLiked) base += 1;
     return base > 0 ? base : 0;
   };
 
@@ -108,13 +106,15 @@ export const PostCard: React.FC<{
     >
       <header className="card-header bg-white border-0 d-flex justify-content-between align-items-center">
         <div className="d-flex align-items-center">
-          {post.author.profile_picture && (
+          {post.author.profile_picture ? (
             <img
               src={post.author.profile_picture}
               alt={`Profilo di ${post.author.username}`}
               className="rounded-circle me-3"
               style={{ width: "32px", height: "32px", objectFit: "cover" }}
             />
+          ) : (
+            <h5>{post.content}</h5>
           )}
           <div className="d-flex flex-column">
             <h2
@@ -128,7 +128,11 @@ export const PostCard: React.FC<{
               className="text-muted"
               style={{ fontSize: "0.75rem" }}
             >
-              {post.created_at}
+              {new Date(post.created_at).toLocaleDateString("it-IT", {
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit",
+              })}{" "}
             </time>
           </div>
         </div>
@@ -246,7 +250,10 @@ TODO
                       className="text-muted ms-2"
                       style={{ fontSize: "0.7rem" }}
                     >
-                      {comment.timestamp}
+                      {new Date(comment.timestamp).toLocaleTimeString("it-IT", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
                     </time>
                   </li>
                 ))}

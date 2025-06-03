@@ -39,8 +39,7 @@ export const HomeScreen: React.FC = () => {
   return (
     <div className="HomeScreen">
       <div className="min-vh-100" style={{ backgroundColor: "#fafafa" }}>
-        {/* Mobile Header */}
-        <div className="d-lg-none bg-white border-bottom px-3 py-2 d-flex justify-content-between align-items-center">
+        {/* <div className="d-lg-none bg-white border-bottom px-3 py-2 d-flex justify-content-between align-items-center">
           <button
             className="btn btn-link p-0 border-0"
             onClick={() => setIsDrawerOpen(true)}
@@ -49,9 +48,8 @@ export const HomeScreen: React.FC = () => {
           </button>
           <h1 className="h4 mb-0 fw-bold logo">MySocial</h1>
           <div style={{ width: "24px" }}></div>
-        </div>
+        </div> */}
 
-        {/* Mobile Drawer Overlay */}
         {isDrawerOpen && (
           <div
             className="d-lg-none position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50"
@@ -60,8 +58,7 @@ export const HomeScreen: React.FC = () => {
           />
         )}
 
-        <div className="d-flex">
-          {/* Sidebar */}
+        <div className=" w-100 d-flex">
           <aside
             className={`side-bar  position-fixed position-lg-relative top-0 bottom-0start-0 h-100 bg-white border-end sidebar-nav ${
               isDrawerOpen ? "show" : ""
@@ -71,7 +68,6 @@ export const HomeScreen: React.FC = () => {
             }}
           >
             <div className="p-4">
-              {/* Logo */}
               <div className="d-flex justify-content-between align-items-center mb-4">
                 <h1 className="h3 mb-0 fw-bold logo">MySocial</h1>
                 <button
@@ -82,7 +78,6 @@ export const HomeScreen: React.FC = () => {
                 </button>
               </div>
 
-              {/* Navigation */}
               <nav>
                 <NavigationItem
                   icon={<Home size={24} />}
@@ -126,7 +121,7 @@ export const HomeScreen: React.FC = () => {
 
           {/* Main Content */}
           <main
-            className="flex-grow-1"
+            className=" w-100"
             //   style={{ marginLeft: window.innerWidth >= 992 ? "256px" : "0" }}
           >
             {currentScreen === "feed" ? (
