@@ -1,17 +1,31 @@
+import { useEffect, useState } from "react";
 import { useStore } from "../../../store";
+import { Post } from "../../../store/models/post";
 import { User } from "../../../store/models/user";
-
-const userPosts = [
-  "https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=300&h=300&fit=crop",
-  "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=300&h=300&fit=crop",
-  "https://images.unsplash.com/photo-1426604966848-d7adac402bff?w=300&h=300&fit=crop",
-  "https://images.unsplash.com/photo-1448375240586-882707db888b?w=300&h=300&fit=crop",
-  "https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=300&h=300&fit=crop",
-  "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=300&h=300&fit=crop",
-];
+import { api } from "../../../api";
+import { PostCard } from "../../../components/Post";
+import { PulseLoader } from "react-spinners";
+import { enqueueSnackbar } from "notistack";
 
 export const ProfileScreen: React.FC = () => {
   const currentUser = useStore((state) => state.user) as User;
+
+  const logout = useStore((state) => state.logout);
+
+  const [posts, setPosts] = useState<Post[] | null>(null);
+
+  useEffect(() => {
+    if (!currentUser) return;
+
+    api.getUserPosts(currentUser.username as any).then((data) => {
+      if (data.data) setPosts(data.data);
+      console.log({ posts: data.data });
+    });
+  }, [currentUser]);
+
+  const onPostDelete = (id: number) => {
+    setPosts((s) => (s == null ? null : s.filter((x) => x.id !== id)));
+  };
 
   if (!currentUser) return <div>Loading...</div>;
 
@@ -19,7 +33,6 @@ export const ProfileScreen: React.FC = () => {
     <div className="min-vh-100 " style={{ paddingTop: "4rem" }}>
       <div className="row justify-content-center">
         <div className="col-11 col-lg-10">
-          {/* Profile Header */}
           <div className="row mb-5">
             <div className="col-12 col-md-4 text-center mb-4 mb-md-0">
               <img
@@ -42,7 +55,10 @@ export const ProfileScreen: React.FC = () => {
                   <button className="btn btn-primary btn-sm px-4">
                     Edit Profile
                   </button>{" "}
-                  <button className="btn btn-secondary btn-sm px-4">
+                  <button
+                    className="btn btn-secondary btn-sm px-4"
+                    onClick={logout}
+                  >
                     Logout
                   </button>{" "}
                 </div>
@@ -72,33 +88,20 @@ export const ProfileScreen: React.FC = () => {
           </div>
 
           <div className="border-top pt-4">
-            <div className="row g-1 g-md-3">
-              {userPosts.map((image, index) => (
-                <div key={index} className="col-4">
-                  <div
-                    className="position-relative overflow-hidden"
-                    style={{ cursor: "pointer" }}
-                  >
-                    <img
-                      src={image}
-                      alt={`Post ${index + 1}`}
-                      className="img-fluid"
-                      style={{
-                        aspectRatio: "1/1",
-                        objectFit: "cover",
-                        transition: "transform 0.2s",
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = "scale(1.05)";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = "scale(1)";
-                      }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
+            {posts == null ? (
+              <div className=" text-center">
+                <PulseLoader />
+              </div>
+            ) : (
+              posts.map((post, index) => (
+                <PostCard
+                  post={post}
+                  key={index}
+                  del={true}
+                  onDelete={onPostDelete}
+                />
+              ))
+            )}
           </div>
         </div>
       </div>

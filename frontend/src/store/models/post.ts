@@ -25,10 +25,9 @@ interface PostActions {
     content: string,
     image: File
   ) => Promise<{ success: boolean; error?: string }>;
-
   likePost: (postId: number) => Promise<{ success: boolean }>;
   unlikePost: (postId: number) => Promise<{ success: boolean }>;
-
+  deletePost: (postId: number) => Promise<{ success: boolean; error?: string }>;
   fetchFeed: () => Promise<void>;
 }
 
@@ -87,7 +86,6 @@ export const createPostStore: StateCreator<
               ? { ...post, is_liked: true, likes_count: post.likes_count + 1 }
               : post
           ),
-
           userPosts: state.userPosts.map((post) =>
             post.id === postId
               ? { ...post, is_liked: true, likes_count: post.likes_count + 1 }
@@ -101,6 +99,7 @@ export const createPostStore: StateCreator<
       return { success: false };
     }
   },
+
   unlikePost: async (postId) => {
     try {
       const response = await api.unlikePost(postId);
@@ -111,7 +110,6 @@ export const createPostStore: StateCreator<
               ? { ...post, is_liked: false, likes_count: post.likes_count - 1 }
               : post
           ),
-
           userPosts: state.userPosts.map((post) =>
             post.id === postId
               ? { ...post, is_liked: false, likes_count: post.likes_count - 1 }
@@ -123,6 +121,31 @@ export const createPostStore: StateCreator<
     } catch (error) {
       console.error("Error unliking post:", error);
       return { success: false };
+    }
+  },
+
+  deletePost: async (postId) => {
+    try {
+      const response = await api.deletePost(postId);
+      if (response.success) {
+        // Remove the post from both feed and userPosts arrays
+        set((state) => ({
+          feed: state.feed.filter((post) => post.id !== postId),
+          userPosts: state.userPosts.filter((post) => post.id !== postId),
+        }));
+        return { success: true };
+      } else {
+        return {
+          success: false,
+          error: response.error || "Failed to delete post",
+        };
+      }
+    } catch (error) {
+      console.error("Error deleting post:", error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error",
+      };
     }
   },
 });

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Heart, MessageCircle, X } from "lucide-react";
+import { Heart, MessageCircle, Trash, X } from "lucide-react";
 import { Post } from "../../store/models/post";
 import { useStore } from "../../store";
 import { enqueueSnackbar } from "notistack";
@@ -18,7 +18,9 @@ interface Comment {
 
 export const PostCard: React.FC<{
   post: Post;
-}> = ({ post }) => {
+  del?: boolean;
+  onDelete?: (id: number) => void;
+}> = ({ post, del, onDelete }) => {
   const [showCommentsPopover, setShowCommentsPopover] = useState(false);
   const [showAddCommentForm, setShowAddCommentForm] = useState(false);
   const [newCommentText, setNewCommentText] = useState("");
@@ -32,6 +34,7 @@ export const PostCard: React.FC<{
 
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
 
+  const deletePostFunc = useStore((s) => s.deletePost);
   const [isLiked, setIsLiked] = useState(post.is_liked);
 
   useEffect(() => {
@@ -45,6 +48,26 @@ export const PostCard: React.FC<{
       }
     });
   }, []);
+
+  const deletePost = (id: number) => {
+    deletePostFunc(id)
+      .then((data) => {
+        if (data.success) {
+          enqueueSnackbar({ message: "Post eliminato", variant: "success" });
+          if (onDelete) onDelete(id);
+        } else
+          enqueueSnackbar({
+            message: "Si è verificato un errore",
+            variant: "error",
+          });
+      })
+      .catch((e) =>
+        enqueueSnackbar({
+          message: "Si è verificato un errore",
+          variant: "error",
+        })
+      );
+  };
 
   const toggleLike = (postId: number) => {
     console.log(`Toggling like for post ${postId}`);
@@ -135,7 +158,7 @@ export const PostCard: React.FC<{
       style={{ maxWidth: "500px" }}
     >
       <header className="card-header bg-white border-0 d-flex justify-content-between align-items-center">
-        <div className="d-flex align-items-center">
+        <div className="d-flex align-items-center justify-content-between">
           {post.author.profile_picture ? (
             <img
               src={post.author.profile_picture}
@@ -143,10 +166,8 @@ export const PostCard: React.FC<{
               className="rounded-circle me-3"
               style={{ width: "32px", height: "32px", objectFit: "cover" }}
             />
-          ) : (
-            <h5>{post.content}</h5>
-          )}
-          <div className="d-flex flex-column">
+          ) : null}
+          <div className="d-flex flex-column " style={{ flex: 1 }}>
             <h2
               className="fw-semibold small m-0"
               id={`post-username-${post.id}`}
@@ -165,9 +186,32 @@ export const PostCard: React.FC<{
               })}{" "}
             </time>
           </div>
+
+          {del && (
+            <button
+              type="button"
+              className="btn btn-link p-0 border-0"
+              onClick={() => {
+                if (
+                  window.confirm("Sei sicuro di voler eliminare questo post?")
+                ) {
+                  deletePost(post.id);
+                }
+              }}
+              aria-label={`Elimina il post ${post.id}`}
+              style={{
+                background: "transparent",
+                border: "none",
+                alignSelf: "flex-end",
+                marginLeft: "1rem",
+              }}
+            >
+              <Trash size={20} color="#dc3545" />
+            </button>
+          )}
         </div>
       </header>
-      {post.image && (
+      {post.image ? (
         <figure className="m-0">
           <img
             src={post.image}
@@ -176,6 +220,10 @@ export const PostCard: React.FC<{
             style={{ aspectRatio: "1/1", objectFit: "cover" }}
           />
         </figure>
+      ) : (
+        <div className="card-body">
+          <h5>{post.content}</h5>
+        </div>
       )}
 
       <div className="card-body">
@@ -220,10 +268,12 @@ export const PostCard: React.FC<{
           {numberOfLikes()} mi piace
         </p>
 
-        <div className="small mb-2">
-          <span className="fw-semibold me-2">{post.author.username}</span>
-          <span>{post.content}</span>
-        </div>
+        {!!post.image && (
+          <div className="small mb-2">
+            <span className="fw-semibold me-2">{post.author.username}</span>
+            <span>{post.content}</span>
+          </div>
+        )}
 
         {comments.length > 0 && (
           <button
