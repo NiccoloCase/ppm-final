@@ -41,6 +41,11 @@ interface UserActions {
     emailAlreadyExists?: boolean;
   }>;
   refreshAccessToken: (refreshToken: string) => Promise<string>;
+  editProfile: (
+    username?: string,
+    bio?: string,
+    profile_picture?: File
+  ) => Promise<{ success: boolean; error?: string }>;
   clearError: () => void;
   setUser: (user: User) => void;
   setLoading: (loading: boolean) => void;
@@ -203,6 +208,40 @@ export const createUserStore: StateCreator<
       // If refresh fails, logout the user
       get().logout();
       throw error;
+    }
+  },
+
+  editProfile: async (
+    username?: string,
+    bio?: string,
+    profile_picture?: File
+  ): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const response = await api.updateProfile(username, bio, profile_picture);
+
+      if (response.success && response.data) {
+        // Update the user in the store with the new data
+        set((state) => ({
+          user: {
+            ...state.user,
+            ...response.data,
+          },
+        }));
+
+        return { success: true };
+      } else {
+        return {
+          success: false,
+          error: response.error || "Failed to update profile",
+        };
+      }
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      return {
+        success: false,
+        error:
+          error instanceof Error ? error.message : "Failed to update profile",
+      };
     }
   },
 
