@@ -39,6 +39,7 @@ export const PostCard: React.FC<{
       execUnlike(postId)
         .then(() => {
           console.log(`Post ${postId} unliked successfully`);
+          enqueueSnackbar({ message: "Like rimosso", variant: "success" });
         })
         .catch((error) => {
           console.error(`Error unliking post ${postId}:`, error);
@@ -55,6 +56,7 @@ export const PostCard: React.FC<{
       execLike(postId)
         .then(() => {
           console.log(`Post ${postId} liked successfully`);
+          enqueueSnackbar({ message: "Like aggiunto", variant: "success" });
         })
         .catch((error) => {
           console.error(`Error liking post ${postId}:`, error);

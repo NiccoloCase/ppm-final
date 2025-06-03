@@ -58,7 +58,7 @@ export const HomeScreen: React.FC = () => {
           />
         )}
 
-        <div className=" w-100 d-flex">
+        <div className="w-100 d-flex">
           <aside
             className={`side-bar  position-fixed position-lg-relative top-0 bottom-0start-0 h-100 bg-white border-end sidebar-nav ${
               isDrawerOpen ? "show" : ""

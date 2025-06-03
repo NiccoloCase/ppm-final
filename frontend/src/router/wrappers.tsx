@@ -10,7 +10,24 @@ import { palette } from "../config";
  */
 export const GuestRoute: React.FC<any> = ({ children }) => {
   const isAuthenticated = useStore((s) => s.isAuthenticated);
-  return isAuthenticated ? <Navigate to="/" replace /> : children;
+  const isLoading = useStore((s) => s.isLoading);
+
+  useEffect(() => {
+    console.log("[PrivateRoute] Stato isAuthenticated cambiato:", {
+      isAuthenticated,
+      isLoading,
+    });
+  }, [isAuthenticated, isLoading]);
+
+  return isLoading && !isAuthenticated ? (
+    <Container className="d-flex justify-content-center align-items-center vh-100">
+      <PulseLoader color={palette.darkGrey} loading={true} size={15} />
+    </Container>
+  ) : isAuthenticated === true ? (
+    <Navigate to="/" replace />
+  ) : (
+    children
+  );
 };
 
 /**

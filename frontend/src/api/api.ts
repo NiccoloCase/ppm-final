@@ -17,6 +17,7 @@ export interface APIResponse {
 }
 
 export const api = {
+  // Auth endpoints
   login: async (email: string, password: string) => {
     try {
       const response = await axiosInstance.post("/auth/login/", {
@@ -97,11 +98,128 @@ export const api = {
     }
   },
 
-  createPost: async (content: string, image: File) => {
+  updateProfile: async (
+    username?: string,
+    bio?: string,
+    profile_picture?: File
+  ): Promise<APIResponse> => {
+    try {
+      const formData = new FormData();
+      if (username) formData.append("username", username);
+      if (bio) formData.append("bio", bio);
+      if (profile_picture) formData.append("profile_picture", profile_picture);
+
+      const response = await axiosInstance.patch("/auth/profile/", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      return {
+        success: false,
+        error:
+          error instanceof Error ? error.message : "Failed to update profile",
+      };
+    }
+  },
+
+  getUserProfile: async (username: string): Promise<APIResponse> => {
+    try {
+      const response = await axiosInstance.get(`/auth/users/${username}/`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+      return {
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch user profile",
+      };
+    }
+  },
+
+  followUser: async (username: string): Promise<APIResponse> => {
+    try {
+      const response = await axiosInstance.post(`/auth/follow/${username}/`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error("Error following user:", error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Failed to follow user",
+      };
+    }
+  },
+
+  unfollowUser: async (username: string): Promise<APIResponse> => {
+    try {
+      const response = await axiosInstance.post(`/auth/unfollow/${username}/`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error("Error unfollowing user:", error);
+      return {
+        success: false,
+        error:
+          error instanceof Error ? error.message : "Failed to unfollow user",
+      };
+    }
+  },
+
+  getFollowers: async (username: string): Promise<APIResponse> => {
+    try {
+      const response = await axiosInstance.get(
+        `/auth/users/${username}/followers/`
+      );
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error("Error fetching followers:", error);
+      return {
+        success: false,
+        error:
+          error instanceof Error ? error.message : "Failed to fetch followers",
+      };
+    }
+  },
+
+  getFollowing: async (username: string): Promise<APIResponse> => {
+    try {
+      const response = await axiosInstance.get(
+        `/auth/users/${username}/following/`
+      );
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error("Error fetching following:", error);
+      return {
+        success: false,
+        error:
+          error instanceof Error ? error.message : "Failed to fetch following",
+      };
+    }
+  },
+
+  // Posts endpoints
+  getFeed: async (): Promise<APIResponse> => {
+    try {
+      const response = await axiosInstance.get(`/posts/`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error("Error fetching feed:", error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Failed to fetch feed",
+      };
+    }
+  },
+
+  createPost: async (content: string, image?: File): Promise<APIResponse> => {
     try {
       const formData = new FormData();
       formData.append("content", content);
-      formData.append("image", image);
+      if (image) formData.append("image", image);
 
       const response = await axiosInstance.post("/posts/", formData, {
         headers: {
@@ -112,24 +230,75 @@ export const api = {
       return { success: true, data: response.data };
     } catch (error) {
       console.error("Error creating post:", error);
-      let errorMessage = "Failed to create post";
-
       return {
         success: false,
-        error: errorMessage,
+        error: error instanceof Error ? error.message : "Failed to create post",
       };
     }
   },
 
-  getFeed: async (): Promise<APIResponse> => {
+  getPost: async (id: number): Promise<APIResponse> => {
     try {
-      const response = await axiosInstance.get(`/posts/`);
+      const response = await axiosInstance.get(`/posts/${id}/`);
       return { success: true, data: response.data };
     } catch (error) {
-      console.error("Error fetching feed:", error);
+      console.error("Error fetching post:", error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : "Failed to fetch feed",
+        error: error instanceof Error ? error.message : "Failed to fetch post",
+      };
+    }
+  },
+
+  updatePost: async (
+    id: number,
+    content: string,
+    image?: File
+  ): Promise<APIResponse> => {
+    try {
+      const formData = new FormData();
+      formData.append("content", content);
+      if (image) formData.append("image", image);
+
+      const response = await axiosInstance.patch(`/posts/${id}/`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error("Error updating post:", error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Failed to update post",
+      };
+    }
+  },
+
+  deletePost: async (id: number): Promise<APIResponse> => {
+    try {
+      await axiosInstance.delete(`/posts/${id}/`);
+      return { success: true };
+    } catch (error) {
+      console.error("Error deleting post:", error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Failed to delete post",
+      };
+    }
+  },
+
+  getUserPosts: async (username: string): Promise<APIResponse> => {
+    try {
+      const response = await axiosInstance.get(`/posts/users/${username}/`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error("Error fetching user posts:", error);
+      return {
+        success: false,
+        error:
+          error instanceof Error ? error.message : "Failed to fetch user posts",
       };
     }
   },
@@ -151,9 +320,101 @@ export const api = {
       const response = await axiosInstance.post(`/posts/${postId}/unlike/`);
       return { success: response.status === 200 };
     } catch (error) {
-      console.error("Error liking post:", error);
+      console.error("Error unliking post:", error);
       return {
         success: false,
+      };
+    }
+  },
+
+  getPostLikes: async (postId: number): Promise<APIResponse> => {
+    try {
+      const response = await axiosInstance.get(`/posts/${postId}/likes/`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error("Error fetching post likes:", error);
+      return {
+        success: false,
+        error:
+          error instanceof Error ? error.message : "Failed to fetch post likes",
+      };
+    }
+  },
+
+  // Comments endpoints
+  getPostComments: async (postId: number): Promise<APIResponse> => {
+    try {
+      const response = await axiosInstance.get(`/posts/${postId}/comments/`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error("Error fetching comments:", error);
+      return {
+        success: false,
+        error:
+          error instanceof Error ? error.message : "Failed to fetch comments",
+      };
+    }
+  },
+
+  createComment: async (
+    postId: number,
+    content: string
+  ): Promise<APIResponse> => {
+    try {
+      const response = await axiosInstance.post(`/posts/${postId}/comments/`, {
+        content,
+      });
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error("Error creating comment:", error);
+      return {
+        success: false,
+        error:
+          error instanceof Error ? error.message : "Failed to create comment",
+      };
+    }
+  },
+
+  getComment: async (id: number): Promise<APIResponse> => {
+    try {
+      const response = await axiosInstance.get(`/posts/comments/${id}/`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error("Error fetching comment:", error);
+      return {
+        success: false,
+        error:
+          error instanceof Error ? error.message : "Failed to fetch comment",
+      };
+    }
+  },
+
+  updateComment: async (id: number, content: string): Promise<APIResponse> => {
+    try {
+      const response = await axiosInstance.patch(`/posts/comments/${id}/`, {
+        content,
+      });
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error("Error updating comment:", error);
+      return {
+        success: false,
+        error:
+          error instanceof Error ? error.message : "Failed to update comment",
+      };
+    }
+  },
+
+  deleteComment: async (id: number): Promise<APIResponse> => {
+    try {
+      await axiosInstance.delete(`/posts/comments/${id}/`);
+      return { success: true };
+    } catch (error) {
+      console.error("Error deleting comment:", error);
+      return {
+        success: false,
+        error:
+          error instanceof Error ? error.message : "Failed to delete comment",
       };
     }
   },
