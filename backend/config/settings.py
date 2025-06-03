@@ -110,7 +110,7 @@ DATABASES = {
         'USER': config('DB_USER',default=os.environ.get('DB_USER', 'DB_USER')),
         'PASSWORD': config('DB_PASSWORD',default=os.environ.get('DB_PASSWORD', 'DB_PASSWORD')),
         'HOST': config('DB_HOST',default=os.environ.get('DB_HOST', 'DB_HOST')),
-        'PORT': config('DB_PORT', cast=int,default=os.environ.get('DB_PORT', 'DB_PORT')),
+        'PORT': config('DB_PORT', cast=int,default=os.environ.get('DB_PORT', 0)),
         'OPTIONS': {
             'sslmode': 'require',
         }
