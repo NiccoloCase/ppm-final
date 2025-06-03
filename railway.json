@@ -1,9 +1,0 @@
-{
-  "services": [
-    {
-      "name": "backend",
-      "rootDir": "backend",
-      "dockerfilePath": "Dockerfile"
-    }
-  ]
-}
