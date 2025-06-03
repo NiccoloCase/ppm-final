@@ -3,12 +3,17 @@ import { Heart, MessageCircle, X } from "lucide-react";
 import { Post } from "../../store/models/post";
 import { useStore } from "../../store";
 import { enqueueSnackbar } from "notistack";
+import { api } from "../../api";
+import { User } from "../../store/models/user";
+import { PulseLoader } from "react-spinners";
 
 interface Comment {
-  id: string;
-  username: string;
-  text: string;
-  timestamp: string; // TODO
+  author: User;
+  content: string;
+  created_at: string;
+  id: number;
+  post: number;
+  updated_at: string;
 }
 
 export const PostCard: React.FC<{
@@ -20,16 +25,26 @@ export const PostCard: React.FC<{
 
   const commentInputRef = useRef<HTMLTextAreaElement>(null);
 
-  const comments = [] as Comment[]; // TODO: Replace with actual comments data
+  const [comments, setComments] = useState<Comment[]>([]);
 
   const execLike = useStore((state) => state.likePost);
   const execUnlike = useStore((state) => state.unlikePost);
+
+  const [isSubmittingComment, setIsSubmittingComment] = useState(false);
 
   const [isLiked, setIsLiked] = useState(post.is_liked);
 
   useEffect(() => {
     setIsLiked(post.is_liked);
   }, [post.is_liked]);
+
+  useEffect(() => {
+    api.getPostComments(post.id).then((data) => {
+      if (data.data) {
+        setComments(data.data);
+      }
+    });
+  }, []);
 
   const toggleLike = (postId: number) => {
     console.log(`Toggling like for post ${postId}`);
@@ -89,10 +104,23 @@ export const PostCard: React.FC<{
 
   const handleCommentSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
     if (newCommentText.trim()) {
       console.log(`Adding comment for post ${post.id}: "${newCommentText}"`);
-      setNewCommentText("");
-      setShowAddCommentForm(false);
+
+      setIsSubmittingComment(true);
+      api
+        .createComment(post.id, newCommentText)
+        .then((data) => {
+          setNewCommentText("");
+          setShowAddCommentForm(false);
+          enqueueSnackbar({
+            message: "Commento aggiunto con successo!",
+            variant: "success",
+          });
+          setComments((s) => [...s, data.data]);
+        })
+        .finally(() => setIsSubmittingComment(false));
     }
   };
 
@@ -196,20 +224,19 @@ export const PostCard: React.FC<{
           <span className="fw-semibold me-2">{post.author.username}</span>
           <span>{post.content}</span>
         </div>
-        {/* 
-TODO
-        {post.comments.length > 0 && (
+
+        {comments.length > 0 && (
           <button
             type="button"
             className="btn btn-link p-0 border-0 text-muted small mt-2 d-block"
             onClick={() => setShowCommentsPopover(!showCommentsPopover)}
             aria-expanded={showCommentsPopover}
             aria-controls={`comments-popover-${post.id}`}
-            aria-label={`Vedi tutti i ${post.comments.length} commenti per il post di ${post.username}`}
+            aria-label={`Vedi tutti i ${comments.length} commenti per il post ${post.id}`}
           >
-            Vedi tutti {post.comments.length} commenti
+            Vedi tutti {comments.length} commenti
           </button>
-        )} */}
+        )}
         <button
           type="button"
           className="btn btn-link p-0 border-0 text-muted small mt-1 d-block"
@@ -245,17 +272,22 @@ TODO
               <ul className="list-unstyled mb-0">
                 {comments.map((comment) => (
                   <li key={comment.id} className="mb-2 small">
-                    <span className="fw-semibold me-1">{comment.username}</span>
-                    <span>{comment.text}</span>
+                    <span className="fw-semibold me-1">
+                      {comment.author.username}
+                    </span>
+                    <span>{comment.content}</span>
                     <time
-                      dateTime={comment.timestamp}
+                      dateTime={comment.created_at}
                       className="text-muted ms-2"
                       style={{ fontSize: "0.7rem" }}
                     >
-                      {new Date(comment.timestamp).toLocaleTimeString("it-IT", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
+                      {new Date(comment.created_at).toLocaleTimeString(
+                        "it-IT",
+                        {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        }
+                      )}
                     </time>
                   </li>
                 ))}
@@ -307,7 +339,7 @@ TODO
               <button
                 type="submit"
                 className="btn btn-primary w-100 fw-semibold py-2"
-                disabled={!newCommentText.trim()}
+                disabled={!newCommentText.trim() || isSubmittingComment}
                 style={{
                   backgroundColor: "#007bff",
                   borderColor: "#007bff",
@@ -315,7 +347,7 @@ TODO
                   opacity: newCommentText.trim() ? 1 : 0.6,
                 }}
               >
-                Pubblica
+                {isSubmittingComment ? <PulseLoader /> : "Pubblica"}
               </button>
               <button
                 type="button"
