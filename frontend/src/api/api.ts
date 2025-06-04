@@ -1,4 +1,5 @@
 import axios from "axios";
+import { User } from "../store/models/user";
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
@@ -14,6 +15,12 @@ export interface APIResponse {
   success: boolean;
   error?: any;
   data?: any;
+}
+
+export interface FollowResponse {
+  message: string;
+  user: User;
+  followed: boolean;
 }
 
 export const api = {
@@ -145,7 +152,10 @@ export const api = {
   followUser: async (username: string): Promise<APIResponse> => {
     try {
       const response = await axiosInstance.post(`/auth/follow/${username}/`);
-      return { success: true, data: response.data };
+      return {
+        success: true,
+        data: response.data as FollowResponse,
+      };
     } catch (error) {
       console.error("Error following user:", error);
       return {
@@ -158,7 +168,10 @@ export const api = {
   unfollowUser: async (username: string): Promise<APIResponse> => {
     try {
       const response = await axiosInstance.post(`/auth/unfollow/${username}/`);
-      return { success: true, data: response.data };
+      return {
+        success: true,
+        data: response.data as FollowResponse,
+      };
     } catch (error) {
       console.error("Error unfollowing user:", error);
       return {
@@ -169,12 +182,25 @@ export const api = {
     }
   },
 
-  getFollowers: async (username: string): Promise<APIResponse> => {
+  getFollowers: async (
+    username: string,
+    meId: number
+  ): Promise<APIResponse> => {
     try {
       const response = await axiosInstance.get(
         `/auth/users/${username}/followers/`
       );
-      return { success: true, data: response.data };
+
+      let data: { follower: User; following: User }[] = Array.isArray(
+        response?.data
+      )
+        ? response?.data
+        : [];
+      let users = data.map((x) =>
+        x.follower.id === meId ? x.following : x.follower
+      );
+
+      return { success: true, data: users };
     } catch (error) {
       console.error("Error fetching followers:", error);
       return {
@@ -185,18 +211,46 @@ export const api = {
     }
   },
 
-  getFollowing: async (username: string): Promise<APIResponse> => {
+  getFollowing: async (
+    username: string,
+    meId: number
+  ): Promise<APIResponse> => {
     try {
       const response = await axiosInstance.get(
         `/auth/users/${username}/following/`
       );
-      return { success: true, data: response.data };
+
+      let data: { following: User; follower: User }[] = Array.isArray(
+        response?.data
+      )
+        ? response?.data
+        : [];
+
+      let users = data.map((x) =>
+        x.follower.id === meId ? x.following : x.follower
+      );
+
+      return { success: true, data: users };
     } catch (error) {
       console.error("Error fetching following:", error);
       return {
         success: false,
         error:
           error instanceof Error ? error.message : "Failed to fetch following",
+      };
+    }
+  },
+
+  getAllUsers: async (): Promise<APIResponse> => {
+    try {
+      const response = await axiosInstance.get("/auth/users/");
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error("Error fetching all users:", error);
+      return {
+        success: false,
+        error:
+          error instanceof Error ? error.message : "Failed to fetch all users",
       };
     }
   },

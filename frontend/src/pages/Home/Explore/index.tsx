@@ -1,94 +1,42 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-
-interface User {
-  id: string;
-  username: string;
-  profilePic: string;
-}
-
-const allUsers: User[] = [
-  {
-    id: "1",
-    username: "alice_wonder",
-    profilePic: "https://via.placeholder.com/150/FF5733/FFFFFF?text=A",
-  },
-  {
-    id: "2",
-    username: "bob_builder",
-    profilePic: "https://via.placeholder.com/150/33FF57/FFFFFF?text=B",
-  },
-  {
-    id: "3",
-    username: "charlie_chaplin",
-    profilePic: "https://via.placeholder.com/150/3357FF/FFFFFF?text=C",
-  },
-  {
-    id: "4",
-    username: "diana_prince",
-    profilePic: "https://via.placeholder.com/150/FF33A1/FFFFFF?text=D",
-  },
-  {
-    id: "5",
-    username: "eve_harrington",
-    profilePic: "https://via.placeholder.com/150/33FFF2/FFFFFF?text=E",
-  },
-  {
-    id: "6",
-    username: "frank_ocean",
-    profilePic: "https://via.placeholder.com/150/A133FF/FFFFFF?text=F",
-  },
-  {
-    id: "7",
-    username: "grace_hopper",
-    profilePic: "https://via.placeholder.com/150/FFDB33/FFFFFF?text=G",
-  },
-  {
-    id: "8",
-    username: "harry_potter",
-    profilePic: "https://via.placeholder.com/150/33A1FF/FFFFFF?text=H",
-  },
-];
-
-const followers: User[] = [
-  {
-    id: "1",
-    username: "alice_wonder",
-    profilePic: "https://via.placeholder.com/150/FF5733/FFFFFF?text=A",
-  },
-  {
-    id: "3",
-    username: "charlie_chaplin",
-    profilePic: "https://via.placeholder.com/150/3357FF/FFFFFF?text=C",
-  },
-  {
-    id: "6",
-    username: "frank_ocean",
-    profilePic: "https://via.placeholder.com/150/A133FF/FFFFFF?text=F",
-  },
-];
-
-const following: User[] = [
-  {
-    id: "2",
-    username: "bob_builder",
-    profilePic: "https://via.placeholder.com/150/33FF57/FFFFFF?text=B",
-  },
-  {
-    id: "4",
-    username: "diana_prince",
-    profilePic: "https://via.placeholder.com/150/FF33A1/FFFFFF?text=D",
-  },
-  {
-    id: "5",
-    username: "eve_harrington",
-    profilePic: "https://via.placeholder.com/150/33FFF2/FFFFFF?text=E",
-  },
-];
+import { User } from "../../../store/models/user";
+import { useStore } from "../../../store";
 
 export const ExploreScreen: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [filteredUsers, setFilteredUsers] = useState<User[]>(allUsers);
+  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
+
+  const {
+    user: currentUser,
+    allUsers,
+    followers,
+    following,
+    isLoadingUsers,
+    isLoadingFollowers,
+    isLoadingFollowing,
+    isFollowingUser,
+    followError,
+    loadAllUsers,
+    loadFollowers,
+    loadFollowing,
+    followUser,
+    unfollowUser,
+    clearFollowError,
+  } = useStore();
+
+  useEffect(() => {
+    const loadData = async () => {
+      await loadAllUsers();
+
+      if (currentUser?.username) {
+        await loadFollowers(currentUser.username);
+        await loadFollowing(currentUser.username);
+      }
+    };
+
+    loadData();
+  }, [currentUser?.username, loadAllUsers, loadFollowers, loadFollowing]);
 
   useEffect(() => {
     setFilteredUsers(
@@ -96,24 +44,91 @@ export const ExploreScreen: React.FC = () => {
         user.username.toLowerCase().includes(searchTerm.toLowerCase())
       )
     );
-  }, [searchTerm]);
+  }, [searchTerm, allUsers]);
 
-  const renderUserList = (users: User[], title: string) => (
+  const handleFollowToggle = async (
+    username: string,
+    isCurrentlyFollowing: boolean
+  ) => {
+    try {
+      if (isCurrentlyFollowing) {
+        await unfollowUser(username);
+      } else {
+        await followUser(username);
+      }
+
+      if (currentUser?.username) {
+        await loadFollowing(currentUser.username);
+      }
+    } catch (error) {
+      console.error("Error toggling follow status:", error);
+    }
+  };
+
+  const getProfilePicture = (user: User) => {
+    if (user.profile_picture) return user.profile_picture;
+
+    const firstLetter = user?.username?.charAt(0)?.toUpperCase();
+    const colors = [
+      "FF5733",
+      "33FF57",
+      "3357FF",
+      "FF33A1",
+      "33FFF2",
+      "A133FF",
+      "FFDB33",
+      "33A1FF",
+    ];
+    const colorIndex = user.id % colors.length;
+    return `https://ui-avatars.com/api/?name=${firstLetter}&background=${colors[colorIndex]}`;
+  };
+
+  const renderUserList = (
+    users: User[],
+    title: string,
+    isLoading: boolean,
+    showFollowButton: boolean = false
+  ) => (
     <section className="card border-0 shadow-sm mb-4">
       <div className="card-body p-4">
         <h5 className="fw-bold mb-3">{title}</h5>
-        {users.length === 0 ? (
+
+        {followError && (
+          <div
+            className="alert alert-danger alert-dismissible fade show"
+            role="alert"
+          >
+            {followError}
+            <button
+              type="button"
+              className="btn-close"
+              onClick={clearFollowError}
+              aria-label="Close"
+            ></button>
+          </div>
+        )}
+
+        {isLoading ? (
+          <div className="text-center p-3">
+            <div className="spinner-border text-primary" role="status">
+              <span className="visually-hidden">Caricamento...</span>
+            </div>
+          </div>
+        ) : users.length === 0 ? (
           <p className="text-muted text-center">Nessun utente trovato.</p>
         ) : (
           <ul className="list-unstyled mb-0">
             {users.map((user) => (
-              <li key={user.id} className="d-flex align-items-center mb-3">
+              <li
+                key={user.id}
+                className="d-flex align-items-center justify-content-between mb-3"
+              >
                 <Link
                   to={`/profile/${user.username}`}
-                  className="d-flex align-items-center text-decoration-none text-dark"
+                  className="d-flex align-items-center text-decoration-none text-dark flex-grow-1"
                 >
                   <img
-                    src={user.profilePic}
+                    src={getProfilePicture(user)}
                     alt={user.username}
                     className="rounded-circle me-3"
                     style={{
@@ -122,8 +137,38 @@ export const ExploreScreen: React.FC = () => {
                       objectFit: "cover",
                     }}
                   />
-                  <span className="fw-semibold">{user.username}</span>
+                  <div>
+                    <span className="fw-semibold d-block">{user.username}</span>
+                    {user.bio && (
+                      <small className="text-muted">{user.bio}</small>
+                    )}
+                  </div>
                 </Link>
+
+                {showFollowButton &&
+                  currentUser &&
+                  user.username !== currentUser.username && (
+                    <button
+                      className={`btn btn-sm ${
+                        user.is_following
+                          ? "btn-outline-primary"
+                          : "btn-primary"
+                      }`}
+                      onClick={() =>
+                        handleFollowToggle(user.username, user.is_following)
+                      }
+                      disabled={isFollowingUser}
+                    >
+                      {isFollowingUser ? (
+                        <span
+                          className="spinner-border spinner-border-sm me-1"
+                          role="status"
+                          aria-hidden="true"
+                        ></span>
+                      ) : null}
+                      {user.is_following ? "Unfollow" : "Follow"}
+                    </button>
+                  )}
               </li>
             ))}
           </ul>
@@ -145,11 +190,54 @@ export const ExploreScreen: React.FC = () => {
             </div>
           </section>
 
-          {renderUserList(filteredUsers, "Tutti gli utenti")}
+          {/* Search Bar */}
+          <section className="card border-0 shadow-sm mb-4">
+            <div className="card-body p-3">
+              <div className="input-group">
+                <span className="input-group-text bg-light border-end-0">
+                  <i className="bi bi-search"></i>
+                </span>
+                <input
+                  type="text"
+                  className="form-control border-start-0 bg-light"
+                  placeholder="Cerca utenti..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+            </div>
+          </section>
 
-          {renderUserList(followers, "Follower")}
+          {renderUserList(
+            filteredUsers,
+            "Tutti gli utenti",
+            isLoadingUsers,
+            true
+          )}
 
-          {renderUserList(following, "Following")}
+          {currentUser && (
+            <>
+              {renderUserList(followers, "I tuoi follower", isLoadingFollowers)}
+              {renderUserList(following, "Stai seguendo", isLoadingFollowing)}
+            </>
+          )}
+
+          {!currentUser && (
+            <section className="card border-0 shadow-sm mb-4">
+              <div className="card-body p-4 text-center">
+                <h5 className="fw-bold mb-3">
+                  Accedi per vedere i tuoi follower
+                </h5>
+                <p className="text-muted mb-3">
+                  Effettua l'accesso per visualizzare i tuoi follower e gli
+                  utenti che stai seguendo.
+                </p>
+                <Link to="/login" className="btn btn-primary">
+                  Accedi
+                </Link>
+              </div>
+            </section>
+          )}
         </div>
       </div>
     </div>

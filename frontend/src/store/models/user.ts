@@ -24,6 +24,15 @@ interface UserState {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
+  // New fields for followers/following functionality
+  allUsers: User[];
+  followers: User[];
+  following: User[];
+  isLoadingUsers: boolean;
+  isLoadingFollowers: boolean;
+  isLoadingFollowing: boolean;
+  isFollowingUser: boolean;
+  followError: string | null;
 }
 
 interface UserActions {
@@ -50,6 +59,21 @@ interface UserActions {
   setUser: (user: User) => void;
   setLoading: (loading: boolean) => void;
   initAuth: () => Promise<void>;
+  // New actions for followers/following functionality
+  loadAllUsers: () => Promise<{ success: boolean; error?: string }>;
+  loadFollowers: (
+    username: string
+  ) => Promise<{ success: boolean; error?: string }>;
+  loadFollowing: (
+    username: string
+  ) => Promise<{ success: boolean; error?: string }>;
+  followUser: (
+    username: string
+  ) => Promise<{ success: boolean; error?: string }>;
+  unfollowUser: (
+    username: string
+  ) => Promise<{ success: boolean; error?: string }>;
+  clearFollowError: () => void;
 }
 
 export type UserModel = UserState & UserActions;
@@ -82,6 +106,15 @@ export const createUserStore: StateCreator<
   isAuthenticated: false,
   isLoading: false,
   error: null,
+  // New state initialization
+  allUsers: [],
+  followers: [],
+  following: [],
+  isLoadingUsers: false,
+  isLoadingFollowers: false,
+  isLoadingFollowing: false,
+  isFollowingUser: false,
+  followError: null,
 
   login: async (email: string, password: string) => {
     set({ isLoading: true, error: null });
@@ -183,6 +216,11 @@ export const createUserStore: StateCreator<
       token: null,
       refreshToken: null,
       isAuthenticated: false,
+      // Clear all user-related data on logout
+      allUsers: [],
+      followers: [],
+      following: [],
+      followError: null,
     });
     saveRefreshToken("");
   },
@@ -303,6 +341,235 @@ export const createUserStore: StateCreator<
       set({ isLoading: false, error: "No refresh token found" });
     }
   },
+
+  // New actions implementation
+  loadAllUsers: async (): Promise<{ success: boolean; error?: string }> => {
+    set({ isLoadingUsers: true, followError: null });
+
+    try {
+      const response = await api.getAllUsers();
+
+      if (response.success && response.data) {
+        set({
+          allUsers: response.data,
+          isLoadingUsers: false,
+        });
+        return { success: true };
+      } else {
+        set({
+          isLoadingUsers: false,
+          followError: response.error || "Failed to load users",
+        });
+        return {
+          success: false,
+          error: response.error || "Failed to load users",
+        };
+      }
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to load users";
+      set({
+        isLoadingUsers: false,
+        followError: errorMessage,
+      });
+      return { success: false, error: errorMessage };
+    }
+  },
+
+  loadFollowers: async (
+    username: string
+  ): Promise<{ success: boolean; error?: string }> => {
+    const meId = get().user?.id;
+    if (!meId)
+      return {
+        success: false,
+        error: "Client not logged in",
+      };
+
+    set({ isLoadingFollowers: true, followError: null });
+
+    try {
+      const response = await api.getFollowers(username, meId);
+
+      if (response.success && response.data) {
+        set({
+          followers: response.data,
+          isLoadingFollowers: false,
+        });
+        return { success: true };
+      } else {
+        set({
+          isLoadingFollowers: false,
+          followError: response.error || "Failed to load followers",
+        });
+        return {
+          success: false,
+          error: response.error || "Failed to load followers",
+        };
+      }
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to load followers";
+      set({
+        isLoadingFollowers: false,
+        followError: errorMessage,
+      });
+      return { success: false, error: errorMessage };
+    }
+  },
+
+  loadFollowing: async (
+    username: string
+  ): Promise<{ success: boolean; error?: string }> => {
+    const meId = get().user?.id;
+
+    if (!meId)
+      return {
+        success: false,
+        error: "Client not logged in",
+      };
+
+    set({ isLoadingFollowing: true, followError: null });
+
+    try {
+      const response = await api.getFollowing(username, meId);
+
+      if (response.success && response.data) {
+        set({
+          following: response.data,
+          isLoadingFollowing: false,
+        });
+        return { success: true };
+      } else {
+        set({
+          isLoadingFollowing: false,
+          followError: response.error || "Failed to load following",
+        });
+        return {
+          success: false,
+          error: response.error || "Failed to load following",
+        };
+      }
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to load following";
+      set({
+        isLoadingFollowing: false,
+        followError: errorMessage,
+      });
+      return { success: false, error: errorMessage };
+    }
+  },
+
+  followUser: async (
+    username: string
+  ): Promise<{ success: boolean; error?: string }> => {
+    set({ isFollowingUser: true, followError: null });
+
+    try {
+      const response = await api.followUser(username);
+
+      if (response.success && response.data) {
+        const { user: updatedUser, followed } = response.data;
+
+        // Update the user in allUsers array
+        set((state) => ({
+          allUsers: state.allUsers.map((user) =>
+            user.username === username
+              ? {
+                  ...user,
+                  is_following: followed,
+                  followers_count: updatedUser.followers_count,
+                }
+              : user
+          ),
+          // Update current user's following count if following yourself (shouldn't happen but just in case)
+          user:
+            state.user?.username === username
+              ? { ...state.user, followers_count: updatedUser.followers_count }
+              : state.user
+              ? {
+                  ...state.user,
+                  following_count: state.user.following_count + 1,
+                }
+              : state.user,
+          isFollowingUser: false,
+        }));
+
+        return { success: true };
+      } else {
+        set({
+          isFollowingUser: false,
+          followError: response.error || "Failed to follow user",
+        });
+        return {
+          success: false,
+          error: response.error || "Failed to follow user",
+        };
+      }
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to follow user";
+      set({
+        isFollowingUser: false,
+        followError: errorMessage,
+      });
+      return { success: false, error: errorMessage };
+    }
+  },
+
+  unfollowUser: async (
+    username: string
+  ): Promise<{ success: boolean; error?: string }> => {
+    set({ isFollowingUser: true, followError: null });
+
+    try {
+      const response = await api.unfollowUser(username);
+
+      if (response.success && response.data) {
+        const { user: updatedUser, followed } = response.data;
+
+        // Update the user in allUsers array
+        set((state) => ({
+          allUsers: state.allUsers.map((user) =>
+            user.username === username
+              ? {
+                  ...user,
+                  is_following: followed,
+                  followers_count: updatedUser.followers_count,
+                }
+              : user
+          ),
+          // Update current user's following count
+          user: state.user
+            ? { ...state.user, following_count: state.user.following_count - 1 }
+            : state.user,
+          isFollowingUser: false,
+        }));
+
+        return { success: true };
+      } else {
+        set({
+          isFollowingUser: false,
+          followError: response.error || "Failed to unfollow user",
+        });
+        return {
+          success: false,
+          error: response.error || "Failed to unfollow user",
+        };
+      }
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to unfollow user";
+      set({
+        isFollowingUser: false,
+        followError: errorMessage,
+      });
+      return { success: false, error: errorMessage };
+    }
+  },
+
+  clearFollowError: () => set({ followError: null }),
 });
 
 export const setupAxiosInterceptors = (axiosInstance: any) => {
