@@ -10,6 +10,7 @@ import { Layout } from "./Layout";
 import { LoginScreen } from "../pages/Login";
 import { SignupScreen } from "../pages/Signup";
 import { GuestRoute, PrivateRoute } from "./wrappers";
+import { ProfileScreen } from "../components/Profile";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -19,6 +20,14 @@ const router = createBrowserRouter(
         element={
           <PrivateRoute>
             <HomeScreen />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/profile/:username"
+        element={
+          <PrivateRoute>
+            <ProfileScreen />
           </PrivateRoute>
         }
       />

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Home, PlusSquare, User, Menu, X, Radar } from "lucide-react";
 import "./Home.scss";
 import { FeedScreen } from "./Feed/Feed";
-import { ProfileScreen } from "./User";
+import { ProfileScreen } from "../../components/Profile";
 import { CreatePostScreen } from "./Create";
 import { ExploreScreen } from "./Explore";
 

@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { useStore } from "../../../store";
-import { Post } from "../../../store/models/post";
-import { User } from "../../../store/models/user";
-import { api } from "../../../api";
-import { PostCard } from "../../../components/Post";
+import { useParams } from "react-router-dom";
+import { useStore } from "../../store";
+import { Post } from "../../store/models/post";
+import { User } from "../../store/models/user";
+import { api } from "../../api";
+import { PostCard } from "../../components/Post";
 import { PulseLoader } from "react-spinners";
 import { enqueueSnackbar } from "notistack";
 import * as Yup from "yup";
@@ -24,13 +25,19 @@ const profileValidationSchema = Yup.object().shape({
 });
 
 export const ProfileScreen: React.FC = () => {
+  const { username: routeUsername } = useParams<{ username?: string }>();
   const currentUser = useStore((state) => state.user) as User;
   const logout = useStore((state) => state.logout);
   const editProfile = useStore((state) => state.editProfile);
+  const followUser = useStore((state) => state.followUser);
+  const unfollowUser = useStore((state) => state.unfollowUser);
+  const isFollowingUser = useStore((state) => state.isFollowingUser);
 
+  const [profileUser, setProfileUser] = useState<User | null>(null);
   const [posts, setPosts] = useState<Post[] | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(false);
 
   const [editUsername, setEditUsername] = useState("");
   const [editBio, setEditBio] = useState("");
@@ -44,20 +51,53 @@ export const ProfileScreen: React.FC = () => {
     bio?: string;
   }>({});
 
+  const isOwnProfile =
+    !routeUsername || routeUsername === currentUser?.username;
+  const targetUsername = routeUsername || currentUser?.username;
+
   useEffect(() => {
-    if (!currentUser) return;
-    api.getUserPosts(currentUser.username as any).then((data) => {
+    const loadProfileUser = async () => {
+      if (!targetUsername) return;
+
+      if (isOwnProfile && currentUser) {
+        setProfileUser(currentUser);
+      } else if (routeUsername) {
+        setIsLoadingProfile(true);
+        try {
+          const response = await api.getUserProfile(routeUsername);
+          if (response.success && response.data) {
+            setProfileUser(response.data);
+          } else {
+            enqueueSnackbar("Failed to load user profile", {
+              variant: "error",
+            });
+          }
+        } catch (error) {
+          enqueueSnackbar("Failed to load user profile", { variant: "error" });
+        } finally {
+          setIsLoadingProfile(false);
+        }
+      }
+    };
+
+    loadProfileUser();
+  }, [routeUsername, currentUser, isOwnProfile, targetUsername]);
+
+  useEffect(() => {
+    if (!targetUsername) return;
+
+    api.getUserPosts(targetUsername as any).then((data) => {
       if (data.data) setPosts(data.data);
       console.log({ posts: data.data });
     });
-  }, [currentUser]);
+  }, [targetUsername]);
 
   useEffect(() => {
-    if (currentUser) {
+    if (isOwnProfile && currentUser) {
       setEditUsername(currentUser.username || "");
       setEditBio(currentUser.bio || "");
     }
-  }, [currentUser]);
+  }, [currentUser, isOwnProfile]);
 
   const onPostDelete = (id: number) => {
     setPosts((s) => (s == null ? null : s.filter((x) => x.id !== id)));
@@ -146,6 +186,10 @@ export const ProfileScreen: React.FC = () => {
         setEditProfilePicture(null);
         setPreviewUrl(null);
         setValidationErrors({});
+        // Update the profile user if it's the current user
+        if (isOwnProfile && currentUser) {
+          setProfileUser(currentUser);
+        }
       } else {
         enqueueSnackbar(result.error || "Failed to update profile", {
           variant: "error",
@@ -155,6 +199,42 @@ export const ProfileScreen: React.FC = () => {
       enqueueSnackbar("Failed to update profile", { variant: "error" });
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  const handleFollowToggle = async () => {
+    if (!profileUser || isOwnProfile) return;
+
+    try {
+      const result = profileUser.is_following
+        ? await unfollowUser(profileUser.username)
+        : await followUser(profileUser.username);
+
+      if (result.success) {
+        // Update the profile user's follow status and followers count
+        setProfileUser((prev) =>
+          prev
+            ? {
+                ...prev,
+                is_following: !prev.is_following,
+                followers_count: prev.is_following
+                  ? prev.followers_count - 1
+                  : prev.followers_count + 1,
+              }
+            : null
+        );
+
+        enqueueSnackbar(
+          profileUser.is_following ? "Unfollowed user" : "Following user",
+          { variant: "success" }
+        );
+      } else {
+        enqueueSnackbar(result.error || "Failed to update follow status", {
+          variant: "error",
+        });
+      }
+    } catch (error) {
+      enqueueSnackbar("Failed to update follow status", { variant: "error" });
     }
   };
 
@@ -177,6 +257,13 @@ export const ProfileScreen: React.FC = () => {
   };
 
   if (!currentUser) return <div>Loading...</div>;
+  if (isLoadingProfile)
+    return (
+      <div className="text-center mt-5">
+        <PulseLoader />
+      </div>
+    );
+  if (!profileUser) return <div>User not found</div>;
 
   return (
     <div className="min-vh-100" style={{ paddingTop: "4rem" }}>
@@ -186,10 +273,10 @@ export const ProfileScreen: React.FC = () => {
             <div className="col-12 col-md-4 text-center mb-4 mb-md-0">
               <img
                 src={
-                  currentUser.profile_picture ||
+                  profileUser.profile_picture ||
                   "https://avatar.iran.liara.run/public/boy"
                 }
-                alt={currentUser.username}
+                alt={profileUser.username}
                 className="rounded-circle"
                 style={{ width: "150px", height: "150px", objectFit: "cover" }}
               />
@@ -197,40 +284,67 @@ export const ProfileScreen: React.FC = () => {
             <div className="col-12 col-md-8">
               <div className="d-flex flex-column flex-md-row align-items-center align-items-md-start mb-4">
                 <h2 className="fw-light me-md-4 mb-3 mb-md-0">
-                  {currentUser.username}
+                  {profileUser.username}
                 </h2>
                 <div className="d-flex gap-2">
-                  <button
-                    className="btn btn-primary btn-sm px-4"
-                    onClick={() => setShowEditModal(true)}
-                  >
-                    Edit Profile
-                  </button>
-                  <button
-                    className="btn btn-secondary btn-sm px-4"
-                    onClick={logout}
-                  >
-                    Logout
-                  </button>
+                  {isOwnProfile ? (
+                    <>
+                      <button
+                        className="btn btn-primary btn-sm px-4"
+                        onClick={() => setShowEditModal(true)}
+                      >
+                        Edit Profile
+                      </button>
+                      <button
+                        className="btn btn-secondary btn-sm px-4"
+                        onClick={logout}
+                      >
+                        Logout
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      className={`btn btn-sm px-4 ${
+                        profileUser.is_following
+                          ? "btn-outline-primary"
+                          : "btn-primary"
+                      }`}
+                      onClick={handleFollowToggle}
+                      disabled={isFollowingUser}
+                    >
+                      {isFollowingUser ? (
+                        <>
+                          <span className="spinner-border spinner-border-sm me-2" />
+                          {profileUser.is_following
+                            ? "Unfollowing..."
+                            : "Following..."}
+                        </>
+                      ) : profileUser.is_following ? (
+                        "Unfollow"
+                      ) : (
+                        "Follow"
+                      )}
+                    </button>
+                  )}
                 </div>
               </div>
               <div className="d-flex justify-content-center justify-content-md-start gap-4 mb-4">
                 <div className="text-center">
                   <span className="fw-semibold">
-                    {currentUser.followers_count.toLocaleString()}
+                    {profileUser.followers_count.toLocaleString()}
                   </span>
                   <span className="text-muted ms-1">followers</span>
                 </div>
                 <div className="text-center">
                   <span className="fw-semibold">
-                    {currentUser.following_count}
+                    {profileUser.following_count}
                   </span>
                   <span className="text-muted ms-1">following</span>
                 </div>
               </div>
               <div>
                 <div className="small" style={{ whiteSpace: "pre-line" }}>
-                  {currentUser.bio}
+                  {profileUser.bio}
                 </div>
               </div>
             </div>
@@ -243,10 +357,10 @@ export const ProfileScreen: React.FC = () => {
             ) : (
               posts.map((post, index) => (
                 <PostCard
-                  edit
+                  edit={isOwnProfile} // Only allow editing on own profile
                   post={post}
                   key={index}
-                  del={true}
+                  del={isOwnProfile} // Only allow deleting on own profile
                   onDelete={onPostDelete}
                   onUpdate={onUpdate}
                 />
@@ -256,8 +370,8 @@ export const ProfileScreen: React.FC = () => {
         </div>
       </div>
 
-      {/* Edit Profile Modal */}
-      {showEditModal && (
+      {/* Edit Profile Modal - Only show for own profile */}
+      {showEditModal && isOwnProfile && (
         <div
           className="modal show d-block"
           style={{ backgroundColor: "rgba(0,0,0,0.5)" }}

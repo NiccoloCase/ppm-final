@@ -472,29 +472,46 @@ export const createUserStore: StateCreator<
       if (response.success && response.data) {
         const { user: updatedUser, followed } = response.data;
 
-        // Update the user in allUsers array
-        set((state) => ({
-          allUsers: state.allUsers.map((user) =>
-            user.username === username
-              ? {
-                  ...user,
-                  is_following: followed,
-                  followers_count: updatedUser.followers_count,
-                }
-              : user
-          ),
-          // Update current user's following count if following yourself (shouldn't happen but just in case)
-          user:
-            state.user?.username === username
-              ? { ...state.user, followers_count: updatedUser.followers_count }
-              : state.user
+        set((state) => {
+          const updatedFollowers = state.followers.some(
+            (u) => u.username === get().user?.username
+          )
+            ? state.followers
+            : [...state.followers, get().user!];
+
+          const updatedFollowing = state.following.some(
+            (u) => u.username === username
+          )
+            ? state.following
+            : [
+                ...state.following,
+                {
+                  ...state.allUsers.find((u) => u.username === username)!,
+                  is_following: true,
+                },
+              ];
+
+          return {
+            allUsers: state.allUsers.map((user) =>
+              user.username === username
+                ? {
+                    ...user,
+                    is_following: true,
+                    followers_count: updatedUser.followers_count,
+                  }
+                : user
+            ),
+            user: state.user
               ? {
                   ...state.user,
                   following_count: state.user.following_count + 1,
                 }
               : state.user,
-          isFollowingUser: false,
-        }));
+            followers: updatedFollowers,
+            following: updatedFollowing,
+            isFollowingUser: false,
+          };
+        });
 
         return { success: true };
       } else {
@@ -529,23 +546,30 @@ export const createUserStore: StateCreator<
       if (response.success && response.data) {
         const { user: updatedUser, followed } = response.data;
 
-        // Update the user in allUsers array
-        set((state) => ({
-          allUsers: state.allUsers.map((user) =>
-            user.username === username
+        set((state) => {
+          return {
+            allUsers: state.allUsers.map((user) =>
+              user.username === username
+                ? {
+                    ...user,
+                    is_following: false,
+                    followers_count: updatedUser.followers_count,
+                  }
+                : user
+            ),
+            user: state.user
               ? {
-                  ...user,
-                  is_following: followed,
-                  followers_count: updatedUser.followers_count,
+                  ...state.user,
+                  following_count: state.user.following_count - 1,
                 }
-              : user
-          ),
-          // Update current user's following count
-          user: state.user
-            ? { ...state.user, following_count: state.user.following_count - 1 }
-            : state.user,
-          isFollowingUser: false,
-        }));
+              : state.user,
+            followers: state.followers.filter(
+              (u) => u.username !== get().user?.username
+            ),
+            following: state.following.filter((u) => u.username !== username),
+            isFollowingUser: false,
+          };
+        });
 
         return { success: true };
       } else {
