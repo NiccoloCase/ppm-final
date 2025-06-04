@@ -54,6 +54,8 @@ class UserDetailView(generics.RetrieveAPIView):
     queryset = User.objects.all()
     serializer_class = UserProfileSerializer
     lookup_field = 'username'
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])

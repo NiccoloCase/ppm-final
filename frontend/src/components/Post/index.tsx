@@ -6,6 +6,7 @@ import { enqueueSnackbar } from "notistack";
 import { api } from "../../api";
 import { User } from "../../store/models/user";
 import { PulseLoader } from "react-spinners";
+import { getProfilePicture } from "../../utils";
 
 interface Comment {
   author: User;
@@ -210,14 +211,13 @@ export const PostCard: React.FC<{
       >
         <header className="card-header bg-white border-0 d-flex justify-content-between align-items-center">
           <div className="d-flex align-items-center justify-content-between">
-            {post.author.profile_picture ? (
-              <img
-                src={post.author.profile_picture}
-                alt={`Profilo di ${post.author.username}`}
-                className="rounded-circle me-3"
-                style={{ width: "32px", height: "32px", objectFit: "cover" }}
-              />
-            ) : null}
+            <img
+              src={getProfilePicture(post.author)}
+              alt={`Profilo di ${post.author.username}`}
+              className="rounded-circle me-3"
+              style={{ width: "32px", height: "32px", objectFit: "cover" }}
+            />
+
             <div className="d-flex flex-column " style={{ flex: 1 }}>
               <h2
                 className="fw-semibold small m-0"

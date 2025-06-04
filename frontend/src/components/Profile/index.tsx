@@ -8,6 +8,7 @@ import { PostCard } from "../../components/Post";
 import { PulseLoader } from "react-spinners";
 import { enqueueSnackbar } from "notistack";
 import * as Yup from "yup";
+import { getProfilePicture } from "../../utils";
 
 // Validation schema
 const profileValidationSchema = Yup.object().shape({
@@ -81,7 +82,7 @@ export const ProfileScreen: React.FC = () => {
     };
 
     loadProfileUser();
-  }, [routeUsername, currentUser, isOwnProfile, targetUsername]);
+  }, [routeUsername, currentUser.id, isOwnProfile, targetUsername]);
 
   useEffect(() => {
     if (!targetUsername) return;
@@ -272,10 +273,7 @@ export const ProfileScreen: React.FC = () => {
           <div className="row mb-5">
             <div className="col-12 col-md-4 text-center mb-4 mb-md-0">
               <img
-                src={
-                  profileUser.profile_picture ||
-                  "https://avatar.iran.liara.run/public/boy"
-                }
+                src={getProfilePicture(profileUser)}
                 alt={profileUser.username}
                 className="rounded-circle"
                 style={{ width: "150px", height: "150px", objectFit: "cover" }}

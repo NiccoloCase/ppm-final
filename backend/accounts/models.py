@@ -5,7 +5,16 @@ class User(AbstractUser):
     email = models.EmailField(unique=True)
     bio = models.TextField(max_length=500, blank=True)
     profile_picture = models.ImageField(upload_to='profiles/', null=True, blank=True)
-    followers = models.ManyToManyField('self', through='Follow', symmetrical=False, related_name='following')
+
+   
+    following_users = models.ManyToManyField(
+        'self',
+        through='Follow',
+        through_fields=('follower', 'following'),
+        symmetrical=False,
+        related_name='followers_users'
+
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -16,15 +25,20 @@ class User(AbstractUser):
         return self.username
 
     @property
-    def followers_count(self):
-        return self.followers.count()
+    def following_count(self):
+        # This now correctly counts the users THIS user is following
+        return self.following_users.count()
 
     @property
-    def following_count(self):
-        return self.following.count()
+    def followers_count(self):
+        # This now correctly counts the users who are following THIS user
+        # We use the 'related_name' defined on the 'following_users' M2M field.
+        return self.followers_users.count()
 
 class Follow(models.Model):
+
     follower = models.ForeignKey(User, related_name='following_set', on_delete=models.CASCADE)
+
     following = models.ForeignKey(User, related_name='followers_set', on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
 
