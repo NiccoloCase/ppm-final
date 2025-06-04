@@ -36,7 +36,7 @@ export const FeedScreen: React.FC<FeedScreenProps> = ({}) => {
         </div>
       ) : (
         <div className="row justify-content-center">
-          <div className="col-6">
+          <div className="col-11 col-md-6">
             {posts.map((post) => (
               <PostCard key={post.id} post={post} />
             ))}

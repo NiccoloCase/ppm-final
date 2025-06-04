@@ -30,10 +30,40 @@
     color: var(--primary);
   }
 
-  main {
+  .main-content {
     height: 100vh;
     overflow-y: scroll;
     overflow-x: hidden;
-    // max-width: calc(100vw - 20vw);
+
+    @media (max-width: 991.98px) {
+      height: calc(100vh - 120px);
+      padding-bottom: 60px;
+    }
+  }
+
+  .bottom-nav {
+    height: 60px;
+    z-index: 1040;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+
+    .bottom-nav-item {
+      transition: all 0.2s ease-in-out;
+
+      &:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+      }
+
+      &.active {
+        color: var(--primary) !important;
+
+        svg {
+          color: var(--primary) !important;
+        }
+      }
+
+      svg {
+        transition: color 0.2s ease-in-out;
+      }
+    }
   }
 }
