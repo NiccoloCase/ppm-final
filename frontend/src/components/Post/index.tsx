@@ -7,6 +7,7 @@ import { api } from "../../api";
 import { User } from "../../store/models/user";
 import { PulseLoader } from "react-spinners";
 import { getProfilePicture } from "../../utils";
+import { Link } from "react-router-dom";
 
 interface Comment {
   author: User;
@@ -211,20 +212,25 @@ export const PostCard: React.FC<{
       >
         <header className="card-header bg-white border-0 d-flex justify-content-between align-items-center">
           <div className="d-flex align-items-center justify-content-between">
-            <img
-              src={getProfilePicture(post.author)}
-              alt={`Profilo di ${post.author.username}`}
-              className="rounded-circle me-3"
-              style={{ width: "32px", height: "32px", objectFit: "cover" }}
-            />
+            <Link to={`/profile/${post.author.username}`}>
+              <img
+                src={getProfilePicture(post.author)}
+                alt={`Profilo di ${post.author.username}`}
+                className="rounded-circle me-3"
+                style={{ width: "32px", height: "32px", objectFit: "cover" }}
+              />
+            </Link>
 
             <div className="d-flex flex-column " style={{ flex: 1 }}>
-              <h2
-                className="fw-semibold small m-0"
-                id={`post-username-${post.id}`}
-              >
-                {post.author.username}
-              </h2>
+              <Link to={`/profile/${post.author.username}`}>
+                <h2
+                  className="fw-semibold small m-0"
+                  id={`post-username-${post.id}`}
+                >
+                  {post.author.username}
+                </h2>
+              </Link>
+
               <time
                 dateTime={post.created_at}
                 className="text-muted"
