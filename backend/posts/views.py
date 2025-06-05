@@ -6,7 +6,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from .models import Post, Comment, Like
 from .serializers import PostSerializer, CommentSerializer, LikeSerializer
 from accounts.models import Follow
-#from notifications.utils import create_notification TODO
+from notifications.utils import create_notification
 
 
 
@@ -128,15 +128,14 @@ def like_post(request, post_id):
 
     if created:
         # Create notification for post author
-        # if post.author != request.user:
-           # TODO
-           # create_notification(
-           #     recipient=post.author,
-           #     sender=request.user,
-           #     notification_type='like',
-           #     message=f'{request.user.username} liked your post',
-           #     related_post=post
-           # )
+        if post.author != request.user:
+            create_notification(
+                recipient=post.author,
+                sender=request.user,
+                notification_type='like',
+                message=f'{request.user.username} liked your post',
+                related_post=post
+           )
         return Response({'message': 'Post liked successfully'})
     else:
         return Response({'message': 'Post already liked'})
