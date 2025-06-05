@@ -1,14 +1,15 @@
 import React, { useState } from "react";
-import { Home, PlusSquare, User, Radar } from "lucide-react";
+import { Home, PlusSquare, User, Radar, Bell } from "lucide-react";
 import "./Home.scss";
 import { FeedScreen } from "./Feed/Feed";
 import { ProfileScreen } from "../../components/Profile";
 import { CreatePostScreen } from "./Create";
 import { ExploreScreen } from "./Explore";
+import { NotificationsScreen } from "./Notifications";
 
 export const HomeScreen: React.FC = () => {
   const [currentScreen, setCurrentScreen] = useState<
-    "feed" | "profile" | "create" | "explore"
+    "feed" | "profile" | "create" | "explore" | "notification"
   >("feed");
 
   const NavigationItem: React.FC<{
@@ -98,6 +99,14 @@ export const HomeScreen: React.FC = () => {
                   isActive={currentScreen === "create"}
                   onClick={() => setCurrentScreen("create")}
                 />
+
+                <NavigationItem
+                  icon={<Bell size={24} />}
+                  label="Notifiche"
+                  isActive={currentScreen === "notification"}
+                  onClick={() => setCurrentScreen("notification")}
+                />
+
                 <NavigationItem
                   icon={<User size={24} />}
                   label="Profilo"
@@ -116,6 +125,8 @@ export const HomeScreen: React.FC = () => {
               <ProfileScreen />
             ) : currentScreen === "create" ? (
               <CreatePostScreen />
+            ) : currentScreen === "notification" ? (
+              <NotificationsScreen />
             ) : (
               <ExploreScreen />
             )}
@@ -142,6 +153,13 @@ export const HomeScreen: React.FC = () => {
               label="Nuovo"
               isActive={currentScreen === "create"}
               onClick={() => setCurrentScreen("create")}
+            />
+
+            <BottomNavItem
+              icon={<Bell size={20} />}
+              label="Notifiche"
+              isActive={currentScreen === "notification"}
+              onClick={() => setCurrentScreen("notification")}
             />
             <BottomNavItem
               icon={<User size={20} />}

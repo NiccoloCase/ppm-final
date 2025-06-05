@@ -472,6 +472,60 @@ export const api = {
       };
     }
   },
+
+  getNotifications: async (): Promise<APIResponse> => {
+    try {
+      const response = await axiosInstance.get("/notifications/");
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+      return {
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch notifications",
+      };
+    }
+  },
+
+  markNotificationAsRead: async (
+    notificationId: number
+  ): Promise<APIResponse> => {
+    try {
+      const response = await axiosInstance.post(
+        `/notifications/${notificationId}/read/`
+      );
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
+      return {
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to mark notification as read",
+      };
+    }
+  },
+
+  markAllNotificationsAsRead: async (): Promise<APIResponse> => {
+    try {
+      const response = await axiosInstance.post(
+        "/notifications/mark-all-read/"
+      );
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error("Error marking all notifications as read:", error);
+      return {
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to mark all notifications as read",
+      };
+    }
+  },
 };
 
 export { axiosInstance };
