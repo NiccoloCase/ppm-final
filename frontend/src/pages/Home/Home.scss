@@ -3,14 +3,6 @@
   height: 100vh;
   background-color: red !important;
 
-  @media (min-width: 992px) {
-    .sidebar-nav {
-      position: relative !important;
-      transform: translateX(0) !important;
-      z-index: auto !important;
-    }
-  }
-
   .nav-item:hover {
     background-color: #f8f9fa !important;
   }
@@ -34,11 +26,6 @@
     height: 100vh;
     overflow-y: scroll;
     overflow-x: hidden;
-
-    @media (max-width: 991.98px) {
-      height: calc(100vh - 120px);
-      padding-bottom: 60px;
-    }
   }
 
   .bottom-nav {

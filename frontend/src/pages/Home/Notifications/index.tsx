@@ -110,7 +110,6 @@ export const NotificationsScreen: React.FC = () => {
             style={{ backgroundColor: "transparent", boxShadow: "none" }}
           >
             <div className="card-body p-3">
-              {/* Option 1: Always center the title */}
               <div className="text-center position-relative">
                 <h1 className="h5 mb-0 fw-bold">Notifiche</h1>
                 {unreadCount > 0 && (
@@ -131,25 +130,6 @@ export const NotificationsScreen: React.FC = () => {
                   </button>
                 )}
               </div>
-
-              {/* Alternative Option 2: Keep the flex layout but center when no button */}
-              {/* 
-              <div className={`d-flex ${unreadCount > 0 ? 'justify-content-between' : 'justify-content-center'} align-items-center`}>
-                <h1 className="h5 mb-0 fw-bold">Notifiche</h1>
-                {unreadCount > 0 && (
-                  <button
-                    className="btn btn-sm btn-outline-primary"
-                    onClick={handleMarkAllAsRead}
-                    disabled={isMarkingAllAsRead}
-                  >
-                    {isMarkingAllAsRead ? (
-                      <span className="spinner-border spinner-border-sm me-1" />
-                    ) : null}
-                    Segna tutte come lette
-                  </button>
-                )}
-              </div>
-              */}
 
               {unreadCount > 0 && (
                 <div className="text-center">
