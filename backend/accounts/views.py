@@ -87,8 +87,7 @@ def unfollow_user(request, username):
     
     try:
         Follow.objects.get(follower=request.user, following=target_user).delete()
-        
-        # Return the complete user profile along with the message
+
         return Response({
             'message': 'User unfollowed successfully',
             'user': UserProfileSerializer(target_user, context={'request': request}).data,

@@ -194,3 +194,20 @@ Il progetto consiste nella realizzazione di un'API e un frontend che implementan
 
 - Ottiene l'elenco degli utenti a cui è piaciuto un post
 - **Richiede:** Autenticazione
+
+### Endpoint Notifiche
+
+**`GET /api/notifications/`**
+
+- Ottiene le notifiche dell'utente corrente
+- Richiede: Autenticazione
+
+**`POST /api/notifications/{notification_id}/read/`**
+
+- Segna una notifica come letta
+- Richiede: Autenticazione
+
+**`POST /api/notifications/mark-all-read/`**
+
+- Segna tutte le notifiche come lette
+- Richiede: Autenticazione
