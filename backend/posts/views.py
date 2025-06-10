@@ -50,11 +50,10 @@ class IsRegularUserOrReadOnly(permissions.BasePermission):
         return True
 
     def has_object_permission(self, request, view, obj):
-        # Read permissions for any authenticated user
         if request.method in permissions.SAFE_METHODS:
             return True
 
-        # Write permissions only to the owner of the object
+
         return obj.author == request.user
 
 

@@ -26,13 +26,10 @@ class User(AbstractUser):
 
     @property
     def following_count(self):
-        # This now correctly counts the users THIS user is following
         return self.following_users.count()
 
     @property
     def followers_count(self):
-        # This now correctly counts the users who are following THIS user
-        # We use the 'related_name' defined on the 'following_users' M2M field.
         return self.followers_users.count()
 
 class Follow(models.Model):

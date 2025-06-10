@@ -119,5 +119,4 @@ class AllUsersListView(generics.ListAPIView):
     authentication_classes = [JWTAuthentication]
 
     def get_queryset(self):
-        # exclude the current user from the list
         return User.objects.exclude(id=self.request.user.id).order_by('username')
