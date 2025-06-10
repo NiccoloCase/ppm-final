@@ -105,7 +105,7 @@ class PostCommentsView(generics.ListCreateAPIView):
                 recipient=post.author,
                 sender=self.request.user,
                 notification_type='comment',
-                message=f'{self.request.user.username} commented on your post',
+                message=f'{self.request.user.username} ha commentato il tuo post',
                 related_post=post
             )
 
@@ -132,7 +132,7 @@ def like_post(request, post_id):
                 recipient=post.author,
                 sender=request.user,
                 notification_type='like',
-                message=f'{request.user.username} liked your post',
+                message=f'A {request.user.username} piace il tuo post',
                 related_post=post
            )
         return Response({'message': 'Post liked successfully'})

@@ -15,7 +15,7 @@ def create_follow_notification(follower, followed_user):
         recipient=followed_user,
         sender=follower,
         notification_type='follow',
-        message=f'{follower.username} started following you'
+        message=f'{follower.username} ha inizato a seguirti'
     )
 
 def remove_follow_notification(follower, followed_user):

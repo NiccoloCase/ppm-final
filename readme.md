@@ -25,6 +25,11 @@ Per provare l'applicazione, è disponibile il seguente account di prova:
 - email: test@gmail.com
 - password: ppmAdmin1
 
+### Deployment
+
+- frontend: https://ppm-final.netlify.app
+- backend: https://ppm-final-production.up.railway.app
+
 ## Architettura del Sistema
 
 ### Frontend
@@ -49,23 +54,17 @@ Per provare l'applicazione, è disponibile il seguente account di prova:
 
 ### Autenticazione
 
-#### Registrazione Utente
-
 **`POST /api/auth/register/`**
 
 - Registra un nuovo utente nel sistema
 - **Body:** `{username, email, password, password_confirm, bio}`
 - **Response:** Dati utente con token JWT
 
-#### Login
-
 **`POST /api/auth/login/`**
 
 - Effettua l'accesso utente
 - **Body:** `{email, password}`
 - **Response:** Dati utente con token JWT
-
-#### Refresh Token
 
 **`POST /api/auth/token/refresh/`**
 
@@ -74,8 +73,6 @@ Per provare l'applicazione, è disponibile il seguente account di prova:
 - **Response:** Nuovo token di accesso
 
 ### Gestione Profilo
-
-#### Profilo Corrente
 
 **`GET /api/auth/profile/`**
 
@@ -88,16 +85,12 @@ Per provare l'applicazione, è disponibile il seguente account di prova:
 - **Body:** `{username, bio, profile_picture}`
 - **Richiede:** Autenticazione
 
-#### Profili Esterni
-
 **`GET /api/auth/users/{username}/`**
 
 - Ottiene il profilo di un utente specifico
 - **Richiede:** Autenticazione
 
 ### Sistema Social
-
-#### Follow System
 
 **`POST /api/auth/follow/{username}/`**
 
@@ -120,8 +113,6 @@ Per provare l'applicazione, è disponibile il seguente account di prova:
 - **Richiede:** Autenticazione
 
 ### Gestione Post
-
-#### Timeline e Post
 
 **`GET /api/posts/`**
 
