@@ -18,27 +18,34 @@ Il progetto consiste nella realizzazione di un'API e un frontend che implementan
 - Notifiche: Sistema di notifiche per tenere traccia delle interazioni (likes, commenti, nuovi follower)
 - Gestione Contenuti: Creazione, modifica ed eliminazione dei propri post con controlli di proprietà
 
+### Account di test
+
+Per provare l'applicazione, è disponibile il seguente account di prova:
+
+- email: test@gmail.com
+- password: ppmAdmin1
+
 ## Architettura del Sistema
 
 ### Frontend
 
 - **Framework:** React
-- **State Management:** Zustand per la gestione dello stato globale
-- **Design:** Interface minimale per testare le API
+- **State Management:** Zustand per la gestione dello store
+- **Design:** Interface minimali per testare le API
 - **Deploy:** Netlify
 
 ### Backend
 
 - **Framework:** Django REST Framework
 - **Database:** PostgreSQL
-- **Deploy:** Railway
+- **Deploy:** Docker + Railway
 - **Autenticazione:** JWT (JSON Web Tokens)
 
 ## Documentazione API
 
 - Tutti gli endpoint che richiedono autenticazione utilizzano JWT tokens
 - Il sistema implementa controlli di proprietà per modifiche e cancellazioni
-- Gli utenti staff hanno privilegi aggiuntivi per la gestione di contenuti multimediali (sono gli staff possono creare post "premium" con delle immagini invece di solo testo)
+- Gli utenti staff hanno privilegi aggiuntivi per la gestione di contenuti multimediali (sono gli staff possono creare post "premium" con delle immagini invece che solo testo)
 
 ### Autenticazione
 
