@@ -1,5 +1,6 @@
 import axios from "axios";
 import { User } from "../store/models/user";
+import { enqueueSnackbar } from "notistack";
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
@@ -284,6 +285,13 @@ export const api = {
       return { success: true, data: response.data };
     } catch (error) {
       console.error("Error creating post:", error);
+
+      if (String(error).includes("403"))
+        enqueueSnackbar({
+          message:
+            "Non hai i permessi per creare un post multimediale. Solo lo staff può creare post con immagini!",
+        });
+
       return {
         success: false,
         error: error instanceof Error ? error.message : "Failed to create post",
@@ -322,6 +330,12 @@ export const api = {
 
       return { success: true, data: response.data };
     } catch (error) {
+      if (String(error).includes("403"))
+        enqueueSnackbar({
+          message:
+            "Non hai i permessi per creare un post multimediale. Solo lo staff può creare post con immagini!",
+        });
+
       console.error("Error updating post:", error);
       return {
         success: false,

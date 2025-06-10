@@ -215,7 +215,9 @@ export const NotificationsScreen: React.FC = () => {
                               background: palette.primary,
                             }}
                           >
-                            {getNotificationIcon(notification.type)}
+                            {getNotificationIcon(
+                              notification.notification_type
+                            )}
                           </div>
                         )}
                       </div>
@@ -236,28 +238,14 @@ export const NotificationsScreen: React.FC = () => {
                               {notification.message}
                             </p>
 
-                            {notification.post && (
+                            {notification.related_post && (
                               <Link
-                                to={`/post/${notification.post.id}`}
+                                to={`/post/${notification.related_post}`}
                                 className="text-muted text-decoration-none small"
                                 onClick={(e) => e.stopPropagation()}
                               >
-                                "{notification.post.content.slice(0, 50)}
-                                {notification.post.content.length > 50
-                                  ? "..."
-                                  : ""}
-                                "
+                                Visualizza post
                               </Link>
-                            )}
-
-                            {notification.comment && (
-                              <p className="text-muted small mb-0">
-                                "{notification.comment.content.slice(0, 50)}
-                                {notification.comment.content.length > 50
-                                  ? "..."
-                                  : ""}
-                                "
-                              </p>
                             )}
                           </div>
 

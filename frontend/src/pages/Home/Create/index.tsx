@@ -1,25 +1,18 @@
 import React, { useState, useRef } from "react";
 import { Formik, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
-import { Camera, X, MapPin, Tag, Smile } from "lucide-react";
-import { Link } from "react-router-dom";
-import { palette } from "../../../config";
+import { Camera, X } from "lucide-react";
 import { useStore } from "../../../store";
 import { enqueueSnackbar } from "notistack";
 
 interface CreatePostFormValues {
   caption: string;
-  location: string;
 }
 
 const validationSchema = Yup.object({
   caption: Yup.string()
     .max(2200, "La didascalia non può superare i 2200 caratteri")
     .required("La didascalia è richiesta"),
-  location: Yup.string().max(
-    100,
-    "La posizione non può superare i 100 caratteri"
-  ),
 });
 
 export const CreatePostScreen: React.FC = () => {
@@ -31,7 +24,6 @@ export const CreatePostScreen: React.FC = () => {
 
   const initialValues: CreatePostFormValues = {
     caption: "",
-    location: "",
   };
 
   const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -63,13 +55,10 @@ export const CreatePostScreen: React.FC = () => {
     values: CreatePostFormValues,
     { setSubmitting }: any
   ) => {
-    if (selectedImages.length === 0) {
-      alert("Per favore, seleziona almeno un'immagine");
-      setSubmitting(false);
-      return;
-    }
-
-    const res = await createPost(values.caption, selectedImages[0]);
+    const res = await createPost(
+      values.caption,
+      selectedImages.length === 0 ? undefined : selectedImages[0]
+    );
 
     if (!res.success) {
       enqueueSnackbar({
@@ -79,6 +68,8 @@ export const CreatePostScreen: React.FC = () => {
       console.error("Error creating post:", res.error);
       setSubmitting(false);
       return;
+    } else {
+      enqueueSnackbar({ message: "Post pubblicato", variant: "success" });
     }
 
     // Reset form
@@ -246,10 +237,9 @@ export const CreatePostScreen: React.FC = () => {
                     <button
                       type="submit"
                       className="btn btn-primary w-100 py-2 fw-semibold"
-                      disabled={isSubmitting || selectedImages.length === 0}
+                      disabled={isSubmitting}
                       style={{
-                        backgroundColor:
-                          selectedImages.length === 0 ? "#b2dffc" : "#0095f6",
+                        backgroundColor: isSubmitting ? "#b2dffc" : "#0095f6",
                         border: "none",
                         borderRadius: "8px",
                       }}

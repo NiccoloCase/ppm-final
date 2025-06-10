@@ -208,7 +208,7 @@ export const PostCard: React.FC<{
     <>
       <article
         className="card mb-4 border-0 shadow-sm"
-        style={{ maxWidth: "500px" }}
+        style={{ maxWidth: "500px", width: "100%" }}
       >
         <header className="card-header bg-white border-0 d-flex justify-content-between align-items-center">
           <div className="d-flex align-items-center justify-content-between">

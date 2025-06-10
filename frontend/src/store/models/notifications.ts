@@ -4,7 +4,7 @@ import { MergedStoreModel } from "./types";
 
 export interface Notification {
   id: number;
-  type: string;
+  notification_type: string;
   message: string;
   is_read: boolean;
   created_at: string;
@@ -12,15 +12,13 @@ export interface Notification {
     id: number;
     username: string;
     profile_picture: string | null;
+    bio?: string;
+    email?: string;
+    followers_count?: number;
+    following_count?: number;
+    is_following?: boolean;
   };
-  post?: {
-    id: number;
-    content: string;
-  };
-  comment?: {
-    id: number;
-    content: string;
-  };
+  related_post?: number | null;
 }
 
 interface NotificationState {

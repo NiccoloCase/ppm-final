@@ -473,23 +473,13 @@ export const createUserStore: StateCreator<
         const { user: updatedUser, followed } = response.data;
 
         set((state) => {
-          const updatedFollowers = state.followers.some(
-            (u) => u.username === get().user?.username
-          )
-            ? state.followers
-            : [...state.followers, get().user!];
-
           const updatedFollowing = state.following.some(
-            (u) => u.username === username
+            (following) => following.username === username
           )
             ? state.following
-            : [
-                ...state.following,
-                {
-                  ...state.allUsers.find((u) => u.username === username)!,
-                  is_following: true,
-                },
-              ];
+            : followed
+            ? [...state.following, followed]
+            : state.following;
 
           return {
             allUsers: state.allUsers.map((user) =>
@@ -507,7 +497,6 @@ export const createUserStore: StateCreator<
                   following_count: state.user.following_count + 1,
                 }
               : state.user,
-            followers: updatedFollowers,
             following: updatedFollowing,
             isFollowingUser: false,
           };
@@ -544,9 +533,13 @@ export const createUserStore: StateCreator<
       const response = await api.unfollowUser(username);
 
       if (response.success && response.data) {
-        const { user: updatedUser, followed } = response.data;
+        const { user: updatedUser } = response.data;
 
         set((state) => {
+          const updatedFollowing = state.following.filter(
+            (following) => following.username !== username
+          );
+
           return {
             allUsers: state.allUsers.map((user) =>
               user.username === username
@@ -560,13 +553,10 @@ export const createUserStore: StateCreator<
             user: state.user
               ? {
                   ...state.user,
-                  following_count: state.user.following_count - 1,
+                  following_count: Math.max(0, state.user.following_count - 1),
                 }
               : state.user,
-            followers: state.followers.filter(
-              (u) => u.username !== get().user?.username
-            ),
-            following: state.following.filter((u) => u.username !== username),
+            following: updatedFollowing,
             isFollowingUser: false,
           };
         });

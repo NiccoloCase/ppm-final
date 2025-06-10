@@ -23,7 +23,7 @@ interface PostState {
 interface PostActions {
   createPost: (
     content: string,
-    image: File
+    image?: File
   ) => Promise<{ success: boolean; error?: string }>;
   likePost: (postId: number) => Promise<{ success: boolean }>;
   unlikePost: (postId: number) => Promise<{ success: boolean }>;
