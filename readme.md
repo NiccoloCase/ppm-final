@@ -36,6 +36,7 @@ Per provare l'applicazione, è disponibile il seguente account di prova:
 
 - **Framework:** React
 - **State Management:** Zustand per la gestione dello store
+- **Autenticazione:** Gestione dei access e refresh token. Gestione del refresh automatico dei token
 - **Design:** Interface minimali per testare le API
 - **Deploy:** Netlify
 
