@@ -14,7 +14,7 @@ Il progetto consiste nella realizzazione di un'API e un frontend che implementan
 
 - Gestione Profili: Visualizzazione e modifica del proprio profilo, consultazione di profili esterni
 - Sistema Social: Feed personalizzato con post degli utenti seguiti, creazione di post, sistema di commenti e likes
-- Network Sociale: Visualizzazione dei propri followers e following, possibilità di seguire/smettere di - seguire altri utenti
+- Network Sociale: Visualizzazione dei propri followers e following, possibilità di seguire/smettere di seguire altri utenti
 - Notifiche: Sistema di notifiche per tenere traccia delle interazioni (likes, commenti, nuovi follower)
 - Gestione Contenuti: Creazione, modifica ed eliminazione dei propri post con controlli di proprietà
 
@@ -36,8 +36,7 @@ Per provare l'applicazione, è disponibile il seguente account di prova:
 
 - **Framework:** React
 - **State Management:** Zustand per la gestione dello store
-- **Autenticazione:** Gestione dei access e refresh token. Gestione del refresh automatico dei token
-- **Design:** Interface minimali per testare le API
+- **Autenticazione:** Gestione degli access token e refresh token. Gestione dell'aggiornamento automatico dei token
 - **Deploy:** Netlify
 
 ### Backend
@@ -51,7 +50,7 @@ Per provare l'applicazione, è disponibile il seguente account di prova:
 
 - Tutti gli endpoint che richiedono autenticazione utilizzano JWT tokens
 - Il sistema implementa controlli di proprietà per modifiche e cancellazioni
-- Gli utenti staff hanno privilegi aggiuntivi per la gestione di contenuti multimediali (sono gli staff possono creare post "premium" con delle immagini invece che solo testo)
+- Gli utenti staff hanno privilegi aggiuntivi per la gestione di contenuti multimediali (solo lo staff può creare post "premium" con delle immagini invece che solo testo)
 
 ### Autenticazione
 
